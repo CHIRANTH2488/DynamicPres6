@@ -1,0 +1,31 @@
+﻿using System;
+using System.Collections.Generic;
+
+namespace Debugging_Doctors.Models;
+
+public partial class Appointment
+{
+    public int AppointmentId { get; set; }
+
+    public int PatientId { get; set; }
+
+    public int DoctorId { get; set; }
+
+    public string AppointmentStatus { get; set; } = null!;
+
+    public DateTime AppointmentDate { get; set; }
+
+    public string? Symptoms { get; set; }
+
+    public string? Diagnosis { get; set; }
+
+    public string? Medicines { get; set; }
+
+    public string InvoiceStatus { get; set; } = null!;
+
+    public decimal? InvoiceAmount { get; set; }
+
+    public virtual Doctor Doctor { get; set; } = null!;
+
+    public virtual Patient Patient { get; set; } = null!;
+}
