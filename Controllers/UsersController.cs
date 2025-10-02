@@ -1,37 +1,30 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using Hospital_Management_system.Models;
+using Hospital_Management_system.Models.DTOs;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Debugging_Doctors.Models;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Authorization;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Security.Cryptography;
 
-namespace Debugging_Doctors.Controllers
+namespace Hospital_Management_system.Controllers
 {
-    [ApiController]
     [Route("api/[controller]")]
+    [ApiController]
     public class UsersController : ControllerBase
     {
         private readonly DebuggingDoctorsContext _context;
-        private readonly IPasswordHasher<User> _passwordHasher;
-        private readonly SignInManager<User> _signInManager;
-        private readonly UserManager<User> _userManager;
 
-        public UsersController(
-            DebuggingDoctorsContext context,
-            IPasswordHasher<User> passwordHasher,
-            SignInManager<User> signInManager,
-            UserManager<User> userManager)
+        public UsersController(DebuggingDoctorsContext context)
         {
             _context = context;
-            _passwordHasher = passwordHasher;
-            _signInManager = signInManager;
-            _userManager = userManager;
         }
 
         // GET: api/Users
         [HttpGet]
-        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<IEnumerable<User>>> GetUsers()
         {
             return await _context.Users.ToListAsync();
@@ -39,25 +32,25 @@ namespace Debugging_Doctors.Controllers
 
         // GET: api/Users/5
         [HttpGet("{id}")]
-        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<User>> GetUser(int id)
         {
             var user = await _context.Users.FindAsync(id);
+
             if (user == null)
             {
                 return NotFound();
             }
+
             return user;
         }
 
         // PUT: api/Users/5
         [HttpPut("{id}")]
-        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> PutUser(int id, User user)
         {
-            if (id != user.Id)
+            if (id != user.UserId)
             {
-                return BadRequest(new { message = "ID mismatch" });
+                return BadRequest();
             }
 
             _context.Entry(user).State = EntityState.Modified;
@@ -72,86 +65,84 @@ namespace Debugging_Doctors.Controllers
                 {
                     return NotFound();
                 }
-                throw;
-            }
-            catch (DbUpdateException ex)
-            {
-                return BadRequest(new { message = "Database error", error = ex.InnerException?.Message });
+                else
+                {
+                    throw;
+                }
             }
 
             return NoContent();
         }
 
-        // POST: api/users/register
-        [HttpPost("register")]
-        [AllowAnonymous]
-        public async Task<IActionResult> Register([FromBody] UserRegisterDto dto)
+        // POST: api/Users
+        [HttpPost]
+        public async Task<ActionResult<User>> PostUser(UserRegistrationDto userDto)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
+            // Map DTO to User entity
             var user = new User
             {
-                Email = dto.UserEmail,
-                UserName = dto.UserEmail, // Required by Identity
-                Role = dto.Role,
-                CreatedAt = DateTime.UtcNow
+                Email = userDto.Email,
+                PswdHash = ComputeSHA256Hash(userDto.PswdHash),
+                Role = userDto.Role,
+                CreatedAt = DateTime.UtcNow, // Set creation date
+                Doctors = new List<Doctor>(), // Initialize empty collections
+                Patients = new List<Patient>()
             };
 
-            // Hash password using UserManager
-            var result = await _userManager.CreateAsync(user, dto.Password);
-            if (!result.Succeeded)
-            {
-                foreach (var error in result.Errors)
-                {
-                    ModelState.AddModelError(string.Empty, error.Description);
-                }
-                return BadRequest(ModelState);
-            }
+            _context.Users.Add(user);
+            await _context.SaveChangesAsync();
 
-            // Assign role
-            await _userManager.AddToRoleAsync(user, dto.Role);
-
-            try
-            {
-                await _context.SaveChangesAsync();
-                return Ok(new { message = "User registered successfully.", userId = user.Id });
-            }
-            catch (DbUpdateException ex)
-            {
-                if (ex.InnerException?.Message.Contains("UQ__Users__A9D10534") == true)
-                {
-                    return Conflict(new { message = "Email already exists." });
-                }
-                return BadRequest(new { message = "Registration failed.", error = ex.InnerException?.Message });
-            }
+            return CreatedAtAction("GetUser", new { id = user.UserId }, user);
         }
 
-        // POST: api/users/login
+        // POST: api/Users/login
         [HttpPost("login")]
-        [AllowAnonymous]
-        public async Task<IActionResult> Login([FromBody] UserLoginDto dto)
+        public async Task<ActionResult<UserDto>> Login(UserLoginDto loginDto)
         {
-            var user = await _userManager.FindByEmailAsync(dto.UserEmail);
+            // Find user by email
+            var user = await _context.Users
+                .FirstOrDefaultAsync(u => u.Email == loginDto.Email);
+
             if (user == null)
             {
-                return Unauthorized(new { message = "Invalid email or password." });
+                return Unauthorized("Invalid email or password.");
             }
 
-            var result = await _signInManager.PasswordSignInAsync(user, dto.Password, isPersistent: false, lockoutOnFailure: false);
-            if (!result.Succeeded)
+            // Compute hash of provided password and compare with stored hash
+            string hashedInputPassword = ComputeSHA256Hash(loginDto.PswdHash);
+            if (hashedInputPassword != user.PswdHash)
             {
-                return Unauthorized(new { message = "Invalid email or password." });
+                return Unauthorized("Invalid email or password.");
             }
 
-            return Ok(new { message = "Login successful.", userId = user.Id, role = user.Role });
+            // Map user to UserDto for response
+            var userDto = new UserDto
+            {
+                UserId = user.UserId,
+                Email = user.Email,
+                Role = user.Role,
+                CreatedAt = user.CreatedAt
+            };
+
+            return Ok(userDto);
+        }
+
+        private static string ComputeSHA256Hash(string rawData)
+        {
+            using (SHA256 sha256Hash = SHA256.Create())
+            {
+                byte[] bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(rawData));
+                StringBuilder builder = new StringBuilder();
+                for (int i = 0; i < bytes.Length; i++)
+                {
+                    builder.Append(bytes[i].ToString("x2"));
+                }
+                return builder.ToString();
+            }
         }
 
         // DELETE: api/Users/5
         [HttpDelete("{id}")]
-        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteUser(int id)
         {
             var user = await _context.Users.FindAsync(id);
@@ -168,7 +159,7 @@ namespace Debugging_Doctors.Controllers
 
         private bool UserExists(int id)
         {
-            return _context.Users.Any(e => e.Id == id);
+            return _context.Users.Any(e => e.UserId == id);
         }
     }
 }

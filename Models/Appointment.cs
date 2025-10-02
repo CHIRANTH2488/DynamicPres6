@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Debugging_Doctors.Models;
+namespace Hospital_Management_system.Models;
 
 public partial class Appointment
 {
