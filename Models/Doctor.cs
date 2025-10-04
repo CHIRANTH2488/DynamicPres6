@@ -13,7 +13,7 @@ public partial class Doctor
 
     public string? Specialisation { get; set; }
 
-    public string? Dept { get; set; }
+    public string? HPID { get; set; }
 
     public string? Availability { get; set; }
 

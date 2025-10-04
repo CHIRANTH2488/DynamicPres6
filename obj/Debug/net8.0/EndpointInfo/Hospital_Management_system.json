@@ -868,7 +868,7 @@
             "type": "string",
             "nullable": true
           },
-          "dept": {
+          "hpid": {
             "type": "string",
             "nullable": true
           },
@@ -925,7 +925,7 @@
             "type": "string",
             "nullable": true
           },
-          "symptoms": {
+          "aadhaar_no": {
             "type": "string",
             "nullable": true
           },
@@ -949,10 +949,6 @@
             "type": "string",
             "nullable": true
           },
-          "age": {
-            "type": "integer",
-            "format": "int32"
-          },
           "gender": {
             "type": "string",
             "nullable": true
@@ -965,9 +961,13 @@
             "type": "string",
             "nullable": true
           },
-          "symptoms": {
+          "aadhaar_no": {
             "type": "string",
             "nullable": true
+          },
+          "age": {
+            "type": "integer",
+            "format": "int32"
           }
         },
         "additionalProperties": false

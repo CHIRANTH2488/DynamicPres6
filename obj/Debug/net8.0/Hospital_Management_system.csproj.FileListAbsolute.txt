@@ -292,3 +292,10 @@ C:\Demos\Hospital_Management_system\bin\Debug\net8.0\runtimes\win\lib\net7.0\Sys
 C:\Demos\Hospital_Management_system\bin\Debug\net8.0\runtimes\browser\lib\net8.0\System.Text.Encodings.Web.dll
 C:\Demos\Hospital_Management_system\bin\Debug\net8.0\runtimes\win\lib\net7.0\System.Windows.Extensions.dll
 C:\Demos\Hospital_Management_system\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt
+C:\Demos\Hospital_Management_system\bin\Debug\net8.0\ng20project\angular.json
+C:\Demos\Hospital_Management_system\bin\Debug\net8.0\ng20project\package-lock.json
+C:\Demos\Hospital_Management_system\bin\Debug\net8.0\ng20project\package.json
+C:\Demos\Hospital_Management_system\bin\Debug\net8.0\ng20project\tsconfig.app.json
+C:\Demos\Hospital_Management_system\bin\Debug\net8.0\ng20project\tsconfig.json
+C:\Demos\Hospital_Management_system\bin\Debug\net8.0\ng20project\tsconfig.spec.json
+C:\Demos\Hospital_Management_system\obj\Debug\net8.0\Hospital_Management_system.sourcelink.json

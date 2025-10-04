@@ -35,7 +35,7 @@ namespace Hospital_Management_system.Controllers
                 Gender = patient.Gender,
                 ContactNo = patient.ContactNo,
                 Address = patient.Address,
-                Symptoms = patient.Symptoms,
+                Aadhaar_no = patient.Aadhaar_no,
                 //Age = CalculateAge(patient.DOB)
             }).ToList();
 
@@ -60,7 +60,7 @@ namespace Hospital_Management_system.Controllers
                 Gender = patient.Gender,
                 ContactNo = patient.ContactNo,
                 Address = patient.Address,
-                Symptoms = patient.Symptoms,
+                Aadhaar_no = patient.Aadhaar_no,
                 //Age = CalculateAge(patient.DOB)
             };
 

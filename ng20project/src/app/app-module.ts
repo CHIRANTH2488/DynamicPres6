@@ -8,6 +8,7 @@ import { HttpClient, provideHttpClient } from '@angular/common/http';
 import { HttpClientModule } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
+import { CaptchaComponent } from './captcha/captcha';
 
 @NgModule({
   declarations: [
@@ -20,7 +21,8 @@ import { ReactiveFormsModule } from '@angular/forms';
     AppRoutingModule,
     HttpClientModule,
     UserLogin,
-    UserRegisteration
+    UserRegisteration,
+    CaptchaComponent
   ],
   providers: [
     provideBrowserGlobalErrorListeners(),

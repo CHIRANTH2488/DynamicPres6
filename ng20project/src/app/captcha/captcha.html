@@ -1,0 +1,18 @@
+<div class="captcha-container mb-3">
+  <div class="d-flex align-items-center gap-2 mb-2">
+    <canvas id="captchaCanvas" width="200" height="60" class="border"></canvas>
+    <button type="button" class="btn btn-sm btn-secondary" (click)="refreshCaptcha()">
+      ↻ Refresh
+    </button>
+  </div>
+  <input
+    type="text"
+    [(ngModel)]="userInput"
+    placeholder="Enter CAPTCHA"
+    class="form-control"
+    [class.is-invalid]="errorMessage"
+  >
+  <div *ngIf="errorMessage" class="invalid-feedback d-block">
+    {{ errorMessage }}
+  </div>
+</div>

@@ -19,7 +19,7 @@ public partial class Patient
 
     public string? Address { get; set; }
 
-    public string? Symptoms { get; set; }
+    public string? Aadhaar_no { get; set; }
 
     public virtual ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
 

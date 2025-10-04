@@ -64,7 +64,7 @@ public partial class DebuggingDoctorsContext : DbContext
             entity.Property(e => e.DocId).HasColumnName("DocID");
             entity.Property(e => e.Availability).HasMaxLength(255);
             entity.Property(e => e.ContactNo).HasMaxLength(20);
-            entity.Property(e => e.Dept).HasMaxLength(100);
+            entity.Property(e => e.HPID).HasMaxLength(100);
             entity.Property(e => e.FullName).HasMaxLength(100);
             entity.Property(e => e.Specialisation).HasMaxLength(100);
             entity.Property(e => e.UserId).HasColumnName("UserID");

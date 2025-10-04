@@ -51,3 +51,106 @@ CREATE TABLE Appointments (
     CONSTRAINT FK_Appointments_Patients FOREIGN KEY (PatientID) REFERENCES Patients(PatientID) ON DELETE NO ACTION,
     CONSTRAINT FK_Appointments_Doctors FOREIGN KEY (DoctorID) REFERENCES Doctors(DocID) ON DELETE NO ACTION
 );
+
+ALTER TABLE Patients
+    ALTER COLUMN Symptoms NVARCHAR(12);
+EXEC sp_rename 'Patients.Symptoms', 'Aadhaar_no', 'COLUMN';
+
+ALTER TABLE Doctors
+    ALTER COLUMN Dept NVARCHAR(14);
+EXEC sp_rename 'Doctors.Dept', 'HPID', 'COLUMN';
+
+------------------------------------------------------------------------------------------------------
+CREATE PROCEDURE GetPatientDataForApprovedAppointment
+    @AppointmentId INT,
+    @UserId INT,
+    @UserRole VARCHAR(10) -- 'Doctor' or 'Patient'
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- Declare variables for error handling
+    DECLARE @ErrorMessage NVARCHAR(4000);
+    DECLARE @ErrorSeverity INT;
+    DECLARE @ErrorState INT;
+
+    BEGIN TRY
+        -- Validate inputs
+        IF @AppointmentId <= 0 OR @UserId <= 0 OR @UserRole NOT IN ('Doctor', 'Patient')
+        BEGIN
+            SET @ErrorMessage = 'Invalid AppointmentId, UserId, or UserRole. AppointmentId and UserId must be positive integers, and UserRole must be ''Doctor'' or ''Patient''.';
+            RAISERROR (@ErrorMessage, 16, 1);
+            RETURN;
+        END
+
+        -- Doctor access: Retrieve patient data for approved appointments
+        IF @UserRole = 'Doctor'
+        BEGIN
+            -- Check if the appointment exists, is approved, and belongs to the doctor
+            IF NOT EXISTS (
+                SELECT 1
+                FROM Appointments
+                WHERE AppointmentId = @AppointmentId
+                AND DoctorId = @UserId
+                AND IsApproved = 1
+            )
+            BEGIN
+                SET @ErrorMessage = 'Appointment not found, not approved, or does not belong to the specified doctor.';
+                RAISERROR (@ErrorMessage, 16, 1);
+                RETURN;
+            END
+
+            -- Retrieve patient data
+            SELECT 
+                p.PatientId,
+                p.Name,
+                p.AadhaarNo,
+                p.Contact, -- Adjust based on actual Patient table columns
+                p.DOB,    -- Adjust based on actual Patient table columns
+                a.AppointmentId,
+                a.AppointmentDate,
+                a.Symptoms
+            FROM Patients p
+            INNER JOIN Appointments a ON p.PatientId = a.PatientId
+            WHERE a.AppointmentId = @AppointmentId
+            AND a.DoctorId = @UserId
+            AND a.IsApproved = 1;
+        END
+        -- Patient access: Retrieve their own appointment data
+        ELSE IF @UserRole = 'Patient'
+        BEGIN
+            -- Check if the appointment exists and belongs to the patient
+            IF NOT EXISTS (
+                SELECT 1
+                FROM Appointments
+                WHERE AppointmentId = @AppointmentId
+                AND PatientId = @UserId
+            )
+            BEGIN
+                SET @ErrorMessage = 'Appointment not found or does not belong to the specified patient.';
+                RAISERROR (@ErrorMessage, 16, 1);
+                RETURN;
+            END
+
+            -- Retrieve appointment data (excluding sensitive patient data like AadhaarNo)
+            SELECT 
+                a.AppointmentId,
+                a.DoctorId,
+                a.AppointmentDate,
+                a.Symptoms,
+                a.IsApproved
+            FROM Appointments a
+            WHERE a.AppointmentId = @AppointmentId
+            AND a.PatientId = @UserId;
+        END
+    END TRY
+    BEGIN CATCH
+        -- Capture error details
+        SET @ErrorMessage = ERROR_MESSAGE();
+        SET @ErrorSeverity = ERROR_SEVERITY();
+        SET @ErrorState = ERROR_STATE();
+
+        -- Return the error
+        RAISERROR (@ErrorMessage, @ErrorSeverity, @ErrorState);
+    END CATCH
+END
