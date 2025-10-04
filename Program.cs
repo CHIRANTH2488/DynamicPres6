@@ -1,4 +1,4 @@
-
+using System.Text.Json.Serialization;
 using Hospital_Management_system.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,6 +9,17 @@ namespace Hospital_Management_system
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+
+            // Add services to the container.
+            builder.Services.AddControllers()
+                .AddJsonOptions(options =>
+                {
+                    // Handle circular references
+                    options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+
+                    // Optional: Write indented JSON for better readability in development
+                    options.JsonSerializerOptions.WriteIndented = true;
+                });
 
             builder.Services.AddDbContext<DebuggingDoctorsContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("mycon")));
@@ -23,6 +34,8 @@ namespace Hospital_Management_system
                           .AllowCredentials();
                 });
             });
+
+
 
             // Add services to the container.
 

@@ -437,6 +437,68 @@
   },
   {
     "ContainingType": "Hospital_Management_system.Controllers.UsersController",
+    "Method": "AddDoctorDetails",
+    "RelativePath": "api/Users/{userId}/doctor-details",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "userId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "doctorDto",
+        "Type": "Hospital_Management_system.Models.DTOs.DoctorDetailsDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "Hospital_Management_system.Models.DTOs.DoctorDetailsDto",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "Hospital_Management_system.Controllers.UsersController",
+    "Method": "AddPatientDetails",
+    "RelativePath": "api/Users/{userId}/patient-details",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "userId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "patientDto",
+        "Type": "Hospital_Management_system.Models.DTOs.PatientDetailsDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "Hospital_Management_system.Models.DTOs.PatientDetailsDto",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "Hospital_Management_system.Controllers.UsersController",
     "Method": "Login",
     "RelativePath": "api/Users/login",
     "HttpMethod": "POST",

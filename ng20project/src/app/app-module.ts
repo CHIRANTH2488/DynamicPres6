@@ -9,10 +9,13 @@ import { HttpClientModule } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 import { CaptchaComponent } from './captcha/captcha';
+import { DoctorDetails } from './doctor-details/doctor-details';
+import { PatientDetails } from './patient-details/patient-details';
 
 @NgModule({
   declarations: [
-    App
+    App,
+    PatientDetails
   ],
   imports: [
     BrowserModule,
@@ -22,6 +25,7 @@ import { CaptchaComponent } from './captcha/captcha';
     HttpClientModule,
     UserLogin,
     UserRegisteration,
+    DoctorDetails,
     CaptchaComponent
   ],
   providers: [

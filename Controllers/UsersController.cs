@@ -157,6 +157,118 @@ namespace Hospital_Management_system.Controllers
             return NoContent();
         }
 
+        // Add this method to your UsersController class (after the PostUser method)
+
+        // POST: api/Users/{userId}/doctor-details
+        [HttpPost("{userId}/doctor-details")]
+        public async Task<ActionResult<DoctorDetailsDto>> AddDoctorDetails(int userId, DoctorDetailsDto doctorDto)
+        {
+            // Check if user exists
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null)
+            {
+                return NotFound("User not found.");
+            }
+
+            // Check if user role is Doctor
+            if (user.Role != "Doctor")
+            {
+                return BadRequest("User is not registered as a Doctor.");
+            }
+
+            // Check if doctor details already exist for this user
+            var existingDoctor = await _context.Doctors
+                .FirstOrDefaultAsync(d => d.UserId == userId);
+
+            if (existingDoctor != null)
+            {
+                return Conflict("Doctor details already exist for this user.");
+            }
+
+            // Create new Doctor entity
+            var doctor = new Doctor
+            {
+                UserId = userId,
+                FullName = doctorDto.FullName,
+                Specialisation = doctorDto.Specialisation,
+                HPID = doctorDto.HPID,
+                ContactNo = doctorDto.ContactNo,
+                Availability = "Available" // Default value
+            };
+
+            _context.Doctors.Add(doctor);
+            await _context.SaveChangesAsync();
+
+            // Return DTO instead of entity to avoid circular reference
+            var responseDto = new DoctorDetailsDto
+            {
+                FullName = doctor.FullName,
+                Specialisation = doctor.Specialisation,
+                HPID = doctor.HPID,
+                ContactNo = doctor.ContactNo
+            };
+
+            return Ok(responseDto);
+        }
+
+        // POST: api/Users/{userId}/patient-details
+        [HttpPost("{userId}/patient-details")]
+        public async Task<ActionResult<PatientDetailsDto>> AddPatientDetails(int userId, PatientDetailsDto patientDto)
+        {
+            // Check if user exists
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null)
+            {
+                return NotFound("User not found.");
+            }
+
+            // Check if user role is Patient
+            if (user.Role != "Patient")
+            {
+                return BadRequest("User is not registered as a Patient.");
+            }
+
+            // Check if patient details already exist for this user
+            var existingPatient = await _context.Patients
+                .FirstOrDefaultAsync(p => p.UserId == userId);
+
+            if (existingPatient != null)
+            {
+                return Conflict("Patient details already exist for this user.");
+            }
+
+            // Create new Patient entity
+            var patient = new Patient
+            {
+                UserId = userId,
+                FullName = patientDto.FullName,
+                Dob = patientDto.Dob,
+                Gender = patientDto.Gender,
+                ContactNo = patientDto.ContactNo,
+                Address = patientDto.Address,
+                Aadhaar_no = patientDto.Aadhaar_no
+            };
+
+            _context.Patients.Add(patient);
+            await _context.SaveChangesAsync();
+
+            // Return DTO to avoid circular reference
+            var responseDto = new PatientDetailsDto
+            {
+                FullName = patient.FullName,
+                Dob = patient.Dob,
+                Gender = patient.Gender,
+                ContactNo = patient.ContactNo,
+                Address = patient.Address,
+                Aadhaar_no = patient.Aadhaar_no
+            };
+
+            return Ok(responseDto);
+        }
+
+        // Note: Make sure you have a DoctorsController with a GetDoctor method,
+        // or you can change the CreatedAtAction to return Ok(doctor) instead
+
         private bool UserExists(int id)
         {
             return _context.Users.Any(e => e.UserId == id);

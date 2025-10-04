@@ -1,19 +1,20 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, ViewChild, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { UserService } from '../services/userservices';
-import { CaptchaComponent } from '../captcha/captcha'; // Import CAPTCHA
+import { CaptchaComponent } from '../captcha/captcha'; 
 
 @Component({
   selector: 'app-user-registeration',
   templateUrl: './user-registeration.html',
   styleUrls: ['./user-registeration.css'],
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, CaptchaComponent] // Add CaptchaComponent
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, CaptchaComponent] 
 })
+
 export class UserRegisteration {
-  registrationForm: FormGroup;
+  registrationForm!: FormGroup;
   errorMessage: string = '';
   successMessage: string = '';
   isCaptchaValid: boolean = false;
@@ -24,11 +25,13 @@ export class UserRegisteration {
     private fb: FormBuilder,
     private userService: UserService,
     private router: Router
-  ) {
+  ) { }
+
+  ngOnInit(): void {
     this.registrationForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
-      pswdHash: ['', Validators.required],
-      role: ['', Validators.required]
+      pswdHash: ['', [Validators.required, Validators.minLength(6)]],
+      role: ['', [Validators.required]]
     });
   }
 
@@ -36,37 +39,56 @@ export class UserRegisteration {
     this.isCaptchaValid = isValid;
   }
 
-  onSubmit(): void {
+  onSubmit(): void {    
     if (this.registrationForm.invalid) {
+      this.errorMessage = 'Please fill all fields correctly.';
+      // Mark all fields as touched to show validation errors
+      Object.keys(this.registrationForm.controls).forEach(key => {
+        this.registrationForm.get(key)?.markAsTouched();
+      });
       return;
     }
 
-    // Validate CAPTCHA before submitting
-    this.captchaComponent.validateCaptcha();
-    
     if (!this.isCaptchaValid) {
-      this.errorMessage = 'Please complete the CAPTCHA verification.';
+      this.errorMessage = 'Please complete the CAPTCHA.';
       return;
     }
 
-    this.errorMessage = '';
-    this.successMessage = '';
+    const userData = this.registrationForm.value;
 
-    const registrationData = this.registrationForm.value;
-    this.userService.register(registrationData).subscribe({
-      next: () => {
-        console.log('Registration successful');
-        this.successMessage = 'Registration successful! Redirecting to login...';
+    this.userService.register(userData).subscribe({
+      next: (response) => {
+        this.successMessage = 'Registration successful!';
+        this.errorMessage = '';
         
-        setTimeout(() => {
-          this.router.navigate(['/login']);
-        }, 1500);
+        // Store userId for doctor details if role is Doctor
+        if (userData.role === 'Doctor') {
+          localStorage.setItem('registeredUserId', response.userId.toString());
+          
+          // Redirect to doctor details page after 1 second
+          setTimeout(() => {
+            this.router.navigate(['/doctor-details']);
+          }, 1000);
+        }else if (userData.role === 'Patient') {
+          localStorage.setItem('registeredUserId', response.userId.toString());
+          
+          // Redirect to patient details page after 1 second
+          setTimeout(() => {
+            this.router.navigate(['/patient-details']);
+          }, 1000);
+        }  else {
+          // For Admin, redirect to login after 2 seconds
+          setTimeout(() => {
+            this.router.navigate(['/login']);
+          }, 2000);
+        }
+        
+        this.registrationForm.reset();
+        this.isCaptchaValid = false;
       },
       error: (error) => {
-        console.error('Registration error:', error);
-        this.errorMessage = 'Registration failed. Please try again.';
-        this.isCaptchaValid = false;
-        this.captchaComponent.refreshCaptcha();
+        this.successMessage = '';
+        this.errorMessage = error.error || 'Registration failed. Please try again.';
       }
     });
   }

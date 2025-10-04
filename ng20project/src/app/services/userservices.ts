@@ -20,6 +20,43 @@ export interface UserDto {
   createdAt: string;
 }
 
+export interface DoctorDetailsDto {
+  fullName: string;
+  specialisation: string;
+  hpid: string;
+  contactNo: string;
+}
+
+export interface Doctor {
+  docId: number;
+  userId: number;
+  fullName: string;
+  specialisation: string;
+  hpid: string;
+  availability: string;
+  contactNo: string;
+}
+
+export interface PatientDetailsDto {
+  fullName: string;
+  dob: string | null;  // ISO date string format
+  gender: string;
+  contactNo: string;
+  address: string;
+  aadhaar_no: string;
+}
+
+export interface Patient {
+  patientId: number;
+  userId: number;
+  fullName: string;
+  dob: string | null;
+  gender: string;
+  contactNo: string;
+  address: string;
+  aadhaar_no: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -28,11 +65,20 @@ export class UserService {
 
   constructor(private http: HttpClient) {}
 
-  register(data: UserRegistrationDto): Observable<void> {
-    return this.http.post<void>(this.apiUrl, data);
+  register(data: UserRegistrationDto): Observable<UserDto> {
+    return this.http.post<UserDto>(this.apiUrl, data);
   }
 
   login(data: LoginDto): Observable<UserDto> {
     return this.http.post<UserDto>(`${this.apiUrl}/login`, data);
   }
+
+  addDoctorDetails(userId: number, doctorDetails: DoctorDetailsDto): Observable<Doctor> {
+    return this.http.post<Doctor>(`${this.apiUrl}/${userId}/doctor-details`, doctorDetails);
+  }
+
+  addPatientDetails(userId: number, patientDetails: PatientDetailsDto): Observable<Patient> {
+    return this.http.post<Patient>(`${this.apiUrl}/${userId}/patient-details`, patientDetails);
+  }
+
 }

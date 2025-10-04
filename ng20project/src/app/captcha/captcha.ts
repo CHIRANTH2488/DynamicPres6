@@ -66,6 +66,23 @@ export class CaptchaComponent implements OnInit {
     }
   }
 
+  // This method is called whenever the user types in the input field
+  onInputChange(): void {
+    if (!this.userInput) {
+      this.errorMessage = null;
+      this.captchaValidated.emit(false);
+      return;
+    }
+    
+    // Auto-validate as user types
+    if (this.userInput.length === this.captchaCode.length) {
+      this.validateCaptcha();
+    } else {
+      // Reset validation if length doesn't match
+      this.captchaValidated.emit(false);
+    }
+  }
+
   validateCaptcha(): void {
     if (!this.userInput) {
       this.errorMessage = 'Please enter the CAPTCHA code.';
@@ -78,13 +95,15 @@ export class CaptchaComponent implements OnInit {
     } else {
       this.errorMessage = 'Invalid CAPTCHA code. Please try again.';
       this.captchaValidated.emit(false);
-      this.generateCaptcha();
+      this.userInput = ''; // Clear the input
+      this.generateCaptcha(); // Generate new captcha
     }
   }
 
   refreshCaptcha(): void {
     this.userInput = '';
     this.errorMessage = null;
+    this.captchaValidated.emit(false);
     this.generateCaptcha();
   }
 }
