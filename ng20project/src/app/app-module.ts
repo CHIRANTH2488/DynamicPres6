@@ -11,11 +11,18 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { CaptchaComponent } from './captcha/captcha';
 import { DoctorDetails } from './doctor-details/doctor-details';
 import { PatientDetails } from './patient-details/patient-details';
+import { DoctorListComponent } from './patient/doctor-list/doctor-list';
+import { BookAppointmentComponent } from './patient/book-appointment/book-appointment';
+import { MyAppointmentsComponent } from './patient/my-appointments/my-appointments';
+import { DoctorDashboardComponent } from './doctor/dashboard/dashboard';
+import { NavbarComponent } from './shared/navbar/navbar';
+import { PatientProfileComponent } from './patient/profile/profile';
+import { DoctorProfileComponent } from './doctor/profile/profile';
 
 @NgModule({
   declarations: [
     App,
-    PatientDetails
+    PatientDetails,
   ],
   imports: [
     BrowserModule,
@@ -26,7 +33,14 @@ import { PatientDetails } from './patient-details/patient-details';
     UserLogin,
     UserRegisteration,
     DoctorDetails,
-    CaptchaComponent
+    CaptchaComponent,
+    DoctorListComponent,
+    BookAppointmentComponent,
+    MyAppointmentsComponent,
+    DoctorDashboardComponent,
+    NavbarComponent,
+    PatientProfileComponent,
+    DoctorProfileComponent
   ],
   providers: [
     provideBrowserGlobalErrorListeners(),

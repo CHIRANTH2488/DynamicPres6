@@ -59,7 +59,20 @@ export class UserLogin {
         localStorage.setItem('user', JSON.stringify(response));
         
         setTimeout(() => {
-          this.router.navigate(['/dashboard']);
+          // Redirect based on role from database
+          switch (response.role) {
+            case 'Doctor':
+              this.router.navigate(['/doctor/dashboard']);
+              break;
+            case 'Patient':
+              this.router.navigate(['/patient/doctors']);
+              break;
+            case 'Admin':
+              this.router.navigate(['/admin/dashboard']);
+              break;
+            default:
+              this.router.navigate(['/dashboard']);
+          }
         }, 1500);
       },
       error: (error) => {

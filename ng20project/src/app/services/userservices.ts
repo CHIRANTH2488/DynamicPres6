@@ -20,6 +20,15 @@ export interface UserDto {
   createdAt: string;
 }
 
+export interface LoginResponseDto {
+  userId: number;
+  email: string;
+  role: string;
+  patientId?: number;
+  doctorId?: number;
+  fullName?: string;
+}
+
 export interface DoctorDetailsDto {
   fullName: string;
   specialisation: string;
