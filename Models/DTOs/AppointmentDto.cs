@@ -30,4 +30,11 @@
     {
         public string? Reason { get; set; }
     }
+
+    public class AppointmentCompletionDto
+    {
+        public string? Diagnosis { get; set; }
+        public string? Medicines { get; set; }
+        public decimal? InvoiceAmount { get; set; }
+    }
 }

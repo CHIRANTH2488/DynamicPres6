@@ -42,9 +42,34 @@ namespace Hospital_Management_system.Controllers
             return patientDtos;
         }
 
+        //// GET: api/Patients/5
+        //[HttpGet("{id}")]
+        //public async Task<ActionResult<PatientDto>> GetPatient(int id)
+        //{
+        //    var patient = await _context.Patients.FindAsync(id);
+
+        //    if (patient == null)
+        //    {
+        //        return NotFound();
+        //    }
+
+        //    // Map to PatientDto and calculate age
+        //    var patientDto = new PatientDto
+        //    {
+        //        FullName = patient.FullName,
+        //        Gender = patient.Gender,
+        //        ContactNo = patient.ContactNo,
+        //        Address = patient.Address,
+        //        Aadhaar_no = patient.Aadhaar_no,
+        //        //Age = CalculateAge(patient.DOB)
+        //    };
+
+        //    return patientDto;
+        //}
+
         // GET: api/Patients/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<PatientDto>> GetPatient(int id)
+        public async Task<ActionResult<Patient>> GetPatient(int id)
         {
             var patient = await _context.Patients.FindAsync(id);
 
@@ -53,22 +78,12 @@ namespace Hospital_Management_system.Controllers
                 return NotFound();
             }
 
-            // Map to PatientDto and calculate age
-            var patientDto = new PatientDto
-            {
-                FullName = patient.FullName,
-                Gender = patient.Gender,
-                ContactNo = patient.ContactNo,
-                Address = patient.Address,
-                Aadhaar_no = patient.Aadhaar_no,
-                //Age = CalculateAge(patient.DOB)
-            };
-
-            return patientDto;
+            return patient;
         }
 
         // PUT: api/Patients/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        // PUT: api/Patients/5
         [HttpPut("{id}")]
         public async Task<IActionResult> PutPatient(int id, Patient patient)
         {

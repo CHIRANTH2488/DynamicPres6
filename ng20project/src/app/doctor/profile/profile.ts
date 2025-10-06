@@ -21,6 +21,7 @@ export class DoctorProfileComponent implements OnInit {
   errorMessage: string = '';
   successMessage: string = '';
   doctorData: Doctor | null = null;
+  showOtherSpecialisation: boolean = false;
 
   constructor(
     private fb: FormBuilder,
@@ -38,10 +39,15 @@ export class DoctorProfileComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.loadDoctorId();
-    this.loadProfile();
-    this.profileForm.disable();
-  }
+  this.loadDoctorId();
+  this.loadProfile();
+  this.profileForm.disable();
+  
+  // Watch for specialisation changes
+  this.profileForm.get('specialisation')?.valueChanges.subscribe(value => {
+    this.showOtherSpecialisation = value === 'Other';
+  });
+}
 
   loadDoctorId(): void {
     const user = localStorage.getItem('user');
@@ -94,41 +100,56 @@ export class DoctorProfileComponent implements OnInit {
   }
 
   onSubmit(): void {
-    if (this.profileForm.invalid) {
-      return;
-    }
-
-    this.isLoading = true;
-    this.errorMessage = '';
-    this.successMessage = '';
-
-    const updateData = {
-      ...this.doctorData,
-      ...this.profileForm.value
-    };
-
-    this.http.put(`https://localhost:7090/api/Doctors/${this.doctorId}`, updateData).subscribe({
-      next: () => {
-        this.successMessage = 'Profile updated successfully!';
-        this.isEditMode = false;
-        this.profileForm.disable();
-        this.isLoading = false;
-        
-        // Update localStorage
-        const user = localStorage.getItem('user');
-        if (user) {
-          const userData = JSON.parse(user);
-          userData.fullName = updateData.fullName;
-          localStorage.setItem('user', JSON.stringify(userData));
-        }
-        
-        setTimeout(() => this.successMessage = '', 3000);
-      },
-      error: (error) => {
-        console.error('Error updating profile:', error);
-        this.errorMessage = 'Failed to update profile.';
-        this.isLoading = false;
-      }
-    });
+  if (this.profileForm.invalid) {
+    return;
   }
+
+  // Check if doctorData is loaded
+  if (!this.doctorData || !this.doctorData.userId) {
+    this.errorMessage = 'Doctor data not loaded properly. Please refresh the page.';
+    return;
+  }
+
+  this.isLoading = true;
+  this.errorMessage = '';
+  this.successMessage = '';
+
+  // Send complete doctor object with all fields
+  const updateData = {
+    docId: this.doctorId,
+    userId: this.doctorData.userId,  // Now guaranteed to be a number
+    fullName: this.profileForm.value.fullName,
+    specialisation: this.profileForm.value.specialisation,
+    hpid: this.profileForm.value.hpid,
+    availability: this.profileForm.value.availability,
+    contactNo: this.profileForm.value.contactNo
+  };
+
+  console.log('Sending update data:', updateData); // Debug log
+
+  this.http.put(`https://localhost:7090/api/Doctors/${this.doctorId}`, updateData).subscribe({
+    next: () => {
+      this.successMessage = 'Profile updated successfully!';
+      this.isEditMode = false;
+      this.profileForm.disable();
+      this.isLoading = false;
+      
+      // Update localStorage
+      const user = localStorage.getItem('user');
+      if (user) {
+        const userData = JSON.parse(user);
+        userData.fullName = updateData.fullName;
+        localStorage.setItem('user', JSON.stringify(userData));
+      }
+      
+      setTimeout(() => this.successMessage = '', 3000);
+    },
+    error: (error) => {
+      console.error('Error updating profile:', error);
+      console.error('Error details:', error.error);
+      this.errorMessage = 'Failed to update profile.';
+      this.isLoading = false;
+    }
+  });
+}
 }

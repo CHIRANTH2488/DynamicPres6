@@ -74,6 +74,7 @@ namespace Hospital_Management_system.Controllers
             return NoContent();
         }
 
+
         // POST: api/Doctors
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
@@ -99,6 +100,17 @@ namespace Hospital_Management_system.Controllers
             await _context.SaveChangesAsync();
 
             return NoContent();
+        }
+
+        // GET: api/Doctors/specialization/{specialization}
+        [HttpGet("specialization/{specialization}")]
+        public async Task<ActionResult<IEnumerable<Doctor>>> GetDoctorsBySpecialization(string specialization)
+        {
+            var doctors = await _context.Doctors
+                .Where(d => d.Specialisation.ToLower().Contains(specialization.ToLower()))
+                .ToListAsync();
+
+            return doctors;
         }
 
         private bool DoctorExists(int id)

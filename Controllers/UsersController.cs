@@ -115,17 +115,42 @@ namespace Hospital_Management_system.Controllers
                 return Unauthorized("Invalid email or password.");
             }
 
-            // Map user to UserDto for response
-            var userDto = new UserDto
+            // Create response based on role
+            var response = new LoginResponseDto
             {
                 UserId = user.UserId,
                 Email = user.Email,
-                Role = user.Role,
-                CreatedAt = user.CreatedAt
+                Role = user.Role
             };
 
-            return Ok(userDto);
+            // If user is a Doctor, get DocID
+            if (user.Role == "Doctor")
+            {
+                var doctor = await _context.Doctors
+                    .FirstOrDefaultAsync(d => d.UserId == user.UserId);
+
+                if (doctor != null)
+                {
+                    response.DoctorId = doctor.DocId;
+                    response.FullName = doctor.FullName;
+                }
+            }
+            // If user is a Patient, get PatientID
+            else if (user.Role == "Patient")
+            {
+                var patient = await _context.Patients
+                    .FirstOrDefaultAsync(p => p.UserId == user.UserId);
+
+                if (patient != null)
+                {
+                    response.PatientId = patient.PatientId;
+                    response.FullName = patient.FullName;
+                }
+            }
+
+            return Ok(response);
         }
+        
 
         private static string ComputeSHA256Hash(string rawData)
         {

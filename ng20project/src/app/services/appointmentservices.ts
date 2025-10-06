@@ -9,6 +9,12 @@ export interface AppointmentBookingDto {
   symptoms?: string;
 }
 
+export interface AppointmentCompletionDto {
+  diagnosis?: string;
+  medicines?: string;
+  invoiceAmount?: number;
+}
+
 export interface AppointmentResponseDto {
   appointmentId: number;
   patientId: number;
@@ -76,4 +82,19 @@ export class AppointmentService {
   getAppointment(appointmentId: number): Observable<AppointmentResponseDto> {
     return this.http.get<AppointmentResponseDto>(`${this.apiUrl}/${appointmentId}`);
   }
+
+    // Get doctor previous appointments
+  getDoctorPreviousAppointments(doctorId: number): Observable<AppointmentResponseDto[]> {
+    return this.http.get<AppointmentResponseDto[]>(`${this.apiUrl}/doctor/${doctorId}/previous`);
+  }
+
+  // Get doctor upcoming appointments
+  getDoctorUpcomingAppointments(doctorId: number): Observable<AppointmentResponseDto[]> {
+    return this.http.get<AppointmentResponseDto[]>(`${this.apiUrl}/doctor/${doctorId}/upcoming`);
+  }
+
+  // Complete appointment
+  completeAppointment(appointmentId: number, data: AppointmentCompletionDto): Observable<any> {
+    return this.http.put(`${this.apiUrl}/${appointmentId}/complete`, data);
+}
 }

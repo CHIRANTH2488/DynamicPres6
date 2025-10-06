@@ -92,16 +92,16 @@
             </div>
 
             <div class="mb-3">
-              <label for="aadhaarNo" class="form-label">Aadhaar Number</label>
+              <label for="Aadhaar_no" class="form-label">Aadhaar Number</label>
               <input
                 type="text"
-                id="aadhaarNo"
-                formControlName="aadhaarNo"
+                id="Aadhaar_no"
+                formControlName="Aadhaar_no"
                 class="form-control"
                 placeholder="12-digit Aadhaar number"
-                [class.is-invalid]="profileForm.get('aadhaarNo')?.invalid && profileForm.get('aadhaarNo')?.touched"
+                [class.is-invalid]="profileForm.get('Aadhaar_No')?.invalid && profileForm.get('Aadhaar_No')?.touched"
               >
-              <div *ngIf="profileForm.get('aadhaarNo')?.invalid && profileForm.get('aadhaarNo')?.touched" class="invalid-feedback">
+              <div *ngIf="profileForm.get('Aadhaar_no')?.invalid && profileForm.get('Aadhaar_no')?.touched" class="invalid-feedback">
                 Please enter a valid 12-digit Aadhaar number.
               </div>
             </div>

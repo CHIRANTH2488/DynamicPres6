@@ -6,20 +6,22 @@ export interface PatientProfile {
   patientId: number;
   userId: number;
   fullName: string;
-  dob?: string;
+  dob?: string; 
   gender?: string;
   contactNo?: string;
   address?: string;
-  aadhaarNo?: string;
+  Aadhaar_no?: string;  
 }
 
 export interface PatientUpdateDto {
+  patientId: number;
+  userId: number;  // Not optional
   fullName: string;
-  dob?: string;
+  dob?: string | null;
   gender?: string;
   contactNo?: string;
   address?: string;
-  aadhaarNo?: string;
+  aadhaarNo?: string;  // Make sure it's camelCase
 }
 
 @Injectable({
