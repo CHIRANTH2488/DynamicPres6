@@ -29,15 +29,27 @@ export class UserRegisteration {
 
   ngOnInit(): void {
     this.registrationForm = this.fb.group({
-      email: ['', [Validators.required, Validators.email]],
-      pswdHash: ['', [Validators.required, Validators.minLength(6)]],
-      role: ['', [Validators.required]]
-    });
+  email: ['', [Validators.required, Validators.email]],
+  pswdHash: ['', Validators.required],
+  confirmPassword: ['', Validators.required],
+  role: ['', Validators.required]
+}, { validators: this.passwordsMatchValidator });
   }
 
   onCaptchaValidated(isValid: boolean): void {
     this.isCaptchaValid = isValid;
   }
+
+  passwordsMatchValidator(form: FormGroup) {
+  const password = form.get('pswdHash')?.value;
+  const confirmPassword = form.get('confirmPassword')?.value;
+  if (password && confirmPassword && password !== confirmPassword) {
+    form.get('confirmPassword')?.setErrors({ passwordMismatch: true });
+  } else {
+    form.get('confirmPassword')?.setErrors(null);
+  }
+  return null;
+}
 
   onSubmit(): void {    
     if (this.registrationForm.invalid) {

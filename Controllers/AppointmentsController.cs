@@ -350,7 +350,7 @@ namespace Hospital_Management_system.Controllers
             var appointments = await _context.Appointments
                 .Include(a => a.Patient)
                 .Include(a => a.Doctor)
-                .Where(a => a.DoctorId == doctorId && a.AppointmentStatus == "Completed")
+                .Where(a => a.DoctorId == doctorId && (a.AppointmentStatus == "Completed" || a.AppointmentStatus == "Rejected" || a.AppointmentStatus == "Cancelled"))
                 .OrderByDescending(a => a.AppointmentDate)
                 .Select(a => new AppointmentResponseDto
                 {
@@ -444,6 +444,73 @@ namespace Hospital_Management_system.Controllers
             }
 
             return Ok(new { message = "Appointment completed successfully" });
+        }
+
+        // PUT: api/Appointments/{id}/payment
+        [HttpPut("{id}/payment")]
+        public async Task<IActionResult> UpdatePaymentStatus(int id, [FromBody] PaymentUpdateDto paymentDto)
+        {
+            var appointment = await _context.Appointments.FindAsync(id);
+            if (appointment == null)
+            {
+                return NotFound(new { message = "Appointment not found" });
+            }
+
+            if (appointment.AppointmentStatus != "Completed")
+            {
+                return BadRequest(new { message = "Payment can only be made for completed appointments" });
+            }
+
+            appointment.InvoiceStatus = paymentDto.InvoiceStatus;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!AppointmentExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return Ok(new { message = "Payment status updated successfully" });
+        }
+
+        // GET: api/Appointments/doctor/{doctorId}/available-slots?date=2025-10-10
+        [HttpGet("doctor/{doctorId}/available-slots")]
+        public async Task<ActionResult<IEnumerable<string>>> GetAvailableSlots(int doctorId, [FromQuery] string date)
+        {
+            if (!DateTime.TryParse(date, out DateTime selectedDate))
+            {
+                return BadRequest(new { message = "Invalid date format" });
+            }
+
+            // Define time slots (9 AM to 5 PM, 30-minute intervals)
+            var allSlots = new List<string>();
+            for (int hour = 9; hour < 17; hour++)
+            {
+                allSlots.Add($"{hour:D2}:00");
+                allSlots.Add($"{hour:D2}:30");
+            }
+
+            // Get booked slots for this doctor on this date
+            var bookedSlots = await _context.Appointments
+                .Where(a => a.DoctorId == doctorId
+                    && a.AppointmentDate.Date == selectedDate.Date
+                    && (a.AppointmentStatus == "Pending" || a.AppointmentStatus == "Confirmed"))
+                .Select(a => a.AppointmentDate.ToString("HH:mm"))
+                .ToListAsync();
+
+            // Return available slots
+            var availableSlots = allSlots.Except(bookedSlots).ToList();
+
+            return Ok(availableSlots);
         }
 
         // PUT: api/Appointments/5

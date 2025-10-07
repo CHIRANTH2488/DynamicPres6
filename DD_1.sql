@@ -41,7 +41,7 @@ CREATE TABLE Appointments (
     AppointmentID INT PRIMARY KEY IDENTITY(1,1),
     PatientID INT NOT NULL,
     DoctorID INT NOT NULL,
-    Appointment_Status NVARCHAR(20) NOT NULL CHECK (Appointment_Status IN ('Scheduled', 'Completed', 'Cancelled')),
+    Appointment_Status NVARCHAR(20) NOT NULL CHECK (Appointment_Status IN ('Scheduled', 'Completed', 'Cancelled','Pending','Rejected')),
     AppointmentDate DATETIME NOT NULL,
     Symptoms NVARCHAR(MAX),
     Diagnosis NVARCHAR(MAX),

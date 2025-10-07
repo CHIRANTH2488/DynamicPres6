@@ -632,6 +632,104 @@
         }
       }
     },
+    "/api/Appointments/{id}/payment": {
+      "put": {
+        "tags": [
+          "Appointments"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PaymentUpdateDto"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PaymentUpdateDto"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/PaymentUpdateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Appointments/doctor/{doctorId}/available-slots": {
+      "get": {
+        "tags": [
+          "Appointments"
+        ],
+        "parameters": [
+          {
+            "name": "doctorId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "date",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/Doctors": {
       "get": {
         "tags": [
@@ -774,17 +872,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Doctor"
+                "$ref": "#/components/schemas/DoctorUpdateDto"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/Doctor"
+                "$ref": "#/components/schemas/DoctorUpdateDto"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/Doctor"
+                "$ref": "#/components/schemas/DoctorUpdateDto"
               }
             }
           }
@@ -813,6 +911,100 @@
         "responses": {
           "200": {
             "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Doctors/check-contact/{contactNo}": {
+      "get": {
+        "tags": [
+          "Doctors"
+        ],
+        "parameters": [
+          {
+            "name": "contactNo",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "excludeDoctorId",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "boolean"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "boolean"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Doctors/check-hpid/{hpid}": {
+      "get": {
+        "tags": [
+          "Doctors"
+        ],
+        "parameters": [
+          {
+            "name": "hpid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "excludeDoctorId",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "boolean"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "boolean"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "boolean"
+                }
+              }
+            }
           }
         }
       }
@@ -1007,17 +1199,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Patient"
+                "$ref": "#/components/schemas/PatientUpdateDto"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/Patient"
+                "$ref": "#/components/schemas/PatientUpdateDto"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/Patient"
+                "$ref": "#/components/schemas/PatientUpdateDto"
               }
             }
           }
@@ -1046,6 +1238,100 @@
         "responses": {
           "200": {
             "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Patients/check-contact/{contactNo}": {
+      "get": {
+        "tags": [
+          "Patients"
+        ],
+        "parameters": [
+          {
+            "name": "contactNo",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "excludePatientId",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "boolean"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "boolean"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Patients/check-aadhaar/{aadhaarNo}": {
+      "get": {
+        "tags": [
+          "Patients"
+        ],
+        "parameters": [
+          {
+            "name": "aadhaarNo",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "excludePatientId",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "boolean"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "boolean"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "boolean"
+                }
+              }
+            }
           }
         }
       }
@@ -1637,6 +1923,40 @@
         },
         "additionalProperties": false
       },
+      "DoctorUpdateDto": {
+        "type": "object",
+        "properties": {
+          "docId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "userId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "fullName": {
+            "type": "string",
+            "nullable": true
+          },
+          "specialisation": {
+            "type": "string",
+            "nullable": true
+          },
+          "hpid": {
+            "type": "string",
+            "nullable": true
+          },
+          "availability": {
+            "type": "string",
+            "nullable": true
+          },
+          "contactNo": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "Patient": {
         "type": "object",
         "properties": {
@@ -1737,6 +2057,55 @@
             "nullable": true
           },
           "aadhaar_no": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "PatientUpdateDto": {
+        "type": "object",
+        "properties": {
+          "patientId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "userId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "fullName": {
+            "type": "string",
+            "nullable": true
+          },
+          "dob": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "gender": {
+            "type": "string",
+            "nullable": true
+          },
+          "contactNo": {
+            "type": "string",
+            "nullable": true
+          },
+          "address": {
+            "type": "string",
+            "nullable": true
+          },
+          "aadhaar_no": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "PaymentUpdateDto": {
+        "type": "object",
+        "properties": {
+          "invoiceStatus": {
             "type": "string",
             "nullable": true
           }

@@ -131,15 +131,36 @@
             <div class="card-body">
               <div class="d-flex justify-content-between align-items-start mb-2">
                 <h5 class="card-title mb-0">{{ appointment.patientName }}</h5>
-                <span class="badge bg-secondary">Completed</span>
+                <!-- <span class="badge bg-secondary">Completed</span> -->
               </div>
               <p class="card-text">
                 <strong>Date:</strong> {{ formatDate(appointment.appointmentDate) }}<br>
                 <strong>Symptoms:</strong> {{ appointment.symptoms || 'N/A' }}<br>
                 <strong>Diagnosis:</strong> {{ appointment.diagnosis || 'N/A' }}<br>
                 <strong>Medicines:</strong> {{ appointment.medicines || 'N/A' }}<br>
-                <strong>Invoice:</strong> {{ appointment.invoiceAmount ? '₹' + appointment.invoiceAmount : 'N/A' }}
+                <strong>Invoice:</strong> {{ appointment.invoiceAmount ? '₹' + appointment.invoiceAmount : 'N/A' }}<br>
+                <strong>Payment Status:</strong> 
+                <span class="badge" [ngClass]="getPaymentBadgeClass(appointment.invoiceStatus)">
+                  {{ appointment.invoiceStatus }}
+                </span>
               </p>
+              
+              <!-- Payment button for doctors -->
+              <ng-container *ngIf="appointment.invoiceStatus === 'Pending'">
+                <button 
+                  *ngIf="appointment.invoiceAmount"
+                  class="btn btn-success btn-sm"
+                  (click)="markAsPaid(appointment.appointmentId)"
+                >
+                  <i class="bi bi-cash me-1"></i>Mark as Paid
+                </button>
+                <span 
+                  *ngIf="!appointment.invoiceAmount"
+                  class="badge bg-danger"
+                >
+                  Cancelled
+                </span>
+              </ng-container>
             </div>
           </div>
         </div>

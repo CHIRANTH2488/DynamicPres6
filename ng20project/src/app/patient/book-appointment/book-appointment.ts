@@ -16,11 +16,13 @@ export class BookAppointmentComponent implements OnInit {
   appointmentForm: FormGroup;
   doctorId: number = 0;
   doctor: Doctor | null = null;
-  patientId: number = 0; // Get from logged-in user
+  patientId: number = 0;
   errorMessage: string = '';
   successMessage: string = '';
   isLoading: boolean = false;
   minDate: string = '';
+  availableSlots: string[] = [];
+  loadingSlots: boolean = false;
 
   constructor(
     private fb: FormBuilder,
@@ -35,7 +37,6 @@ export class BookAppointmentComponent implements OnInit {
       symptoms: ['', Validators.required]
     });
 
-    // Set minimum date to today
     const today = new Date();
     this.minDate = today.toISOString().split('T')[0];
   }
@@ -44,6 +45,31 @@ export class BookAppointmentComponent implements OnInit {
     this.doctorId = Number(this.route.snapshot.paramMap.get('doctorId'));
     this.loadDoctor();
     this.loadPatientId();
+
+    // Watch for date changes
+    this.appointmentForm.get('appointmentDate')?.valueChanges.subscribe(date => {
+      if (date) {
+        this.loadAvailableSlots(date);
+      }
+    });
+  }
+
+  loadAvailableSlots(date: string): void {
+    this.loadingSlots = true;
+    this.availableSlots = [];
+    this.appointmentForm.patchValue({ appointmentTime: '' });
+
+    this.appointmentService.getAvailableSlots(this.doctorId, date).subscribe({
+      next: (slots) => {
+        this.availableSlots = slots;
+        this.loadingSlots = false;
+      },
+      error: (error) => {
+        console.error('Error loading slots:', error);
+        this.errorMessage = 'Failed to load available time slots.';
+        this.loadingSlots = false;
+      }
+    });
   }
 
   loadDoctor(): void {

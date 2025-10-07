@@ -10,18 +10,18 @@ export interface PatientProfile {
   gender?: string;
   contactNo?: string;
   address?: string;
-  Aadhaar_no?: string;  
+  aadhaarNo?: string;  
 }
 
 export interface PatientUpdateDto {
   patientId: number;
-  userId: number;  // Not optional
+  userId: number;
   fullName: string;
   dob?: string | null;
   gender?: string;
   contactNo?: string;
   address?: string;
-  aadhaarNo?: string;  // Make sure it's camelCase
+  aadhaarNo?: string;
 }
 
 @Injectable({
@@ -37,6 +37,16 @@ export class PatientService {
   }
 
   updatePatientProfile(patientId: number, data: PatientUpdateDto): Observable<any> {
-    return this.http.put(`${this.apiUrl}/${patientId}`, data);
-  }
+  return this.http.put(`${this.apiUrl}/${patientId}`, data);
+}
+
+  checkContactExists(contactNo: string, excludePatientId?: number): Observable<{exists: boolean}> {
+  const params = excludePatientId ? `?excludePatientId=${excludePatientId}` : '';
+  return this.http.get<{exists: boolean}>(`${this.apiUrl}/check-contact/${contactNo}${params}`);
+}
+
+checkAadhaarExists(aadhaarNo: string, excludePatientId?: number): Observable<{exists: boolean}> {
+  const params = excludePatientId ? `?excludePatientId=${excludePatientId}` : '';
+  return this.http.get<{exists: boolean}>(`${this.apiUrl}/check-aadhaar/${aadhaarNo}${params}`);
+}
 }

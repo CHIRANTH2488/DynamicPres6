@@ -43,6 +43,21 @@
           Password is required.
         </div>
       </div>
+
+      <div class="mb-3">
+        <label for="confirmPassword" class="form-label">Confirm Password</label>
+        <input
+          type="password"
+          id="confirmPassword"
+          formControlName="confirmPassword"
+          class="form-control"
+          [class.is-invalid]="registrationForm.get('confirmPassword')?.invalid && registrationForm.get('confirmPassword')?.touched"
+        >
+        <div *ngIf="registrationForm.get('confirmPassword')?.invalid && registrationForm.get('confirmPassword')?.touched" class="invalid-feedback">
+          <div *ngIf="registrationForm.get('confirmPassword')?.errors?.['required']">Confirm Password is required.</div>
+          <div *ngIf="registrationForm.get('confirmPassword')?.errors?.['passwordMismatch']">Passwords do not match.</div>
+        </div>
+      </div>
       
       <div class="mb-3">
         <label for="role" class="form-label">Role</label>
@@ -53,7 +68,7 @@
           [class.is-invalid]="registrationForm.get('role')?.invalid && registrationForm.get('role')?.touched"
         >
           <option value="" disabled>Select a role</option>
-          <option value="Admin">Admin</option>
+          <!-- <option value="Admin">Admin</option> -->
           <option value="Doctor">Doctor</option>
           <option value="Patient">Patient</option>
         </select>

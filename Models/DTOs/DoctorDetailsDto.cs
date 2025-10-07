@@ -7,4 +7,5 @@
         public string HPID { get; set; }
         public string ContactNo { get; set; }
     }
+
 }

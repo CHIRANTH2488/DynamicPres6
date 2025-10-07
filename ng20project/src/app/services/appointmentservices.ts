@@ -97,4 +97,13 @@ export class AppointmentService {
   completeAppointment(appointmentId: number, data: AppointmentCompletionDto): Observable<any> {
     return this.http.put(`${this.apiUrl}/${appointmentId}/complete`, data);
 }
+
+updatePaymentStatus(appointmentId: number, status: string): Observable<any> {
+  return this.http.put(`${this.apiUrl}/${appointmentId}/payment`, { invoiceStatus: status });
+}
+
+getAvailableSlots(doctorId: number, date: string): Observable<string[]> {
+  return this.http.get<string[]>(`${this.apiUrl}/doctor/${doctorId}/available-slots?date=${date}`);
+}
+
 }

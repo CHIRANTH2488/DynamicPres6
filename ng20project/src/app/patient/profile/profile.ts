@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { PatientService, PatientProfile, PatientUpdateDto } from '../../services/patientservices';
+import { UniqueValidators } from '../../validators/unique-validators';
 
 @Component({
   selector: 'app-patient-profile',
@@ -21,25 +22,41 @@ export class PatientProfileComponent implements OnInit {
   patientData: PatientProfile | null = null;
 
   constructor(
-    private fb: FormBuilder,
-    private patientService: PatientService,
-    private router: Router
-  ) {
-    this.profileForm = this.fb.group({
-      fullName: ['', Validators.required],
-      dob: [''],
-      gender: [''],
-      contactNo: ['', [Validators.pattern(/^\d{10}$/)]],
-      address: [''],
-      Aadhaar_no: ['', [Validators.pattern(/^\d{12}$/)]]
-    });
-  }
+  private fb: FormBuilder,
+  private patientService: PatientService,
+  private router: Router
+) {
+  this.profileForm = this.fb.group({
+    fullName: ['', Validators.required],
+    dob: [''],
+    gender: [''],
+    contactNo: ['', 
+      [Validators.pattern(/^\d{10}$/)],
+      // Add async validator - will check after patientId is loaded
+    ],
+    address: [''],
+    aadhaarNo: ['', 
+      [Validators.pattern(/^\d{12}$/)],
+      // Add async validator - will check after patientId is loaded
+    ]
+  });
+}
 
-  ngOnInit(): void {
-    this.loadPatientId();
-    this.loadProfile();
-    this.profileForm.disable(); // Start in view mode
-  }
+ngOnInit(): void {
+  this.loadPatientId();
+  this.loadProfile();
+  this.profileForm.disable();
+  
+  // Add async validators after patientId is loaded
+  setTimeout(() => {
+    this.profileForm.get('contactNo')?.setAsyncValidators(
+      UniqueValidators.uniquePatientContact(this.patientService, this.patientId)
+    );
+    this.profileForm.get('aadhaarNo')?.setAsyncValidators(
+      UniqueValidators.uniquePatientAadhaar(this.patientService, this.patientId)
+    );
+  }, 100);
+}
 
   loadPatientId(): void {
     const user = localStorage.getItem('user');
@@ -76,7 +93,7 @@ export class PatientProfileComponent implements OnInit {
         gender: data.gender || '',
         contactNo: data.contactNo || '',
         address: data.address || '',
-        Aadhaar_no: data.Aadhaar_no || ''
+        aadhaarNo: data.aadhaarNo || ''
       });
       
       console.log('Form values:', this.profileForm.value); // Debug log
@@ -117,22 +134,23 @@ export class PatientProfileComponent implements OnInit {
   this.errorMessage = '';
   this.successMessage = '';
 
-  // Send complete patient object with all fields
+  // Create update DTO matching backend expectations
   const updateData: PatientUpdateDto = {
     patientId: this.patientId,
-    userId: this.patientData.userId,  // Now guaranteed to be a number
+    userId: this.patientData.userId,
     fullName: this.profileForm.value.fullName,
-    dob: this.profileForm.value.dob ? this.profileForm.value.dob : null,
-    gender: this.profileForm.value.gender,
-    contactNo: this.profileForm.value.contactNo,
-    address: this.profileForm.value.address,
-    aadhaarNo: this.profileForm.value.aadhaarNo  // Fixed typo: was Aadhaar_no
+    dob: this.profileForm.value.dob || null,
+    gender: this.profileForm.value.gender || null,
+    contactNo: this.profileForm.value.contactNo || null,
+    address: this.profileForm.value.address || null,
+    aadhaarNo: this.profileForm.value.aadhaarNo || null
   };
 
-  console.log('Sending update data:', updateData); // Debug log
+  console.log('Sending update data:', updateData);
 
   this.patientService.updatePatientProfile(this.patientId, updateData).subscribe({
-    next: () => {
+    next: (response) => {
+      console.log('Update response:', response);
       this.successMessage = 'Profile updated successfully!';
       this.isEditMode = false;
       this.profileForm.disable();
@@ -146,14 +164,24 @@ export class PatientProfileComponent implements OnInit {
         localStorage.setItem('user', JSON.stringify(userData));
       }
       
+      // Reload profile to show updated data
+      this.loadProfile();
+      
       setTimeout(() => this.successMessage = '', 3000);
     },
     error: (error) => {
       console.error('Error updating profile:', error);
       console.error('Error details:', error.error);
-      this.errorMessage = 'Failed to update profile.';
+      this.errorMessage = error.error?.message || 'Failed to update profile.';
       this.isLoading = false;
     }
   });
 }
+
+  get patientPrefix(): string {
+    const gender = this.profileForm.get('gender')?.value;
+    if (gender === 'Male') return 'Mr.';
+    if (gender === 'Female') return 'Ms.';
+    return '';
+  }
 }

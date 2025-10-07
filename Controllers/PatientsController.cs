@@ -85,14 +85,27 @@ namespace Hospital_Management_system.Controllers
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         // PUT: api/Patients/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutPatient(int id, Patient patient)
+        public async Task<IActionResult> PutPatient(int id, [FromBody] PatientUpdateDto patientDto)
         {
-            if (id != patient.PatientId)
+            if (id != patientDto.PatientId)
             {
-                return BadRequest();
+                return BadRequest(new { message = "Patient ID mismatch" });
             }
 
-            _context.Entry(patient).State = EntityState.Modified;
+            var patient = await _context.Patients.FindAsync(id);
+            if (patient == null)
+            {
+                return NotFound(new { message = "Patient not found" });
+            }
+
+            // Update only the fields from DTO
+            patient.FullName = patientDto.FullName;
+            patient.Dob = patientDto.Dob;
+            patient.Gender = patientDto.Gender;
+            patient.ContactNo = patientDto.ContactNo;
+            patient.Address = patientDto.Address;
+            patient.Aadhaar_no = patientDto.Aadhaar_no;
+            // Note: UserId should not be changed
 
             try
             {
@@ -110,7 +123,27 @@ namespace Hospital_Management_system.Controllers
                 }
             }
 
-            return NoContent();
+            return Ok(new { message = "Profile updated successfully" });
+        }
+
+        // GET: api/Patients/check-contact/{contactNo}
+        [HttpGet("check-contact/{contactNo}")]
+        public async Task<ActionResult<bool>> CheckContactExists(string contactNo, [FromQuery] int? excludePatientId)
+        {
+            var exists = await _context.Patients
+                .AnyAsync(p => p.ContactNo == contactNo && p.PatientId != excludePatientId);
+
+            return Ok(new { exists });
+        }
+
+        // GET: api/Patients/check-aadhaar/{aadhaarNo}
+        [HttpGet("check-aadhaar/{aadhaarNo}")]
+        public async Task<ActionResult<bool>> CheckAadhaarExists(string aadhaarNo, [FromQuery] int? excludePatientId)
+        {
+            var exists = await _context.Patients
+                .AnyAsync(p => p.Aadhaar_no == aadhaarNo && p.PatientId != excludePatientId);
+
+            return Ok(new { exists });
         }
 
         // POST: api/Patients

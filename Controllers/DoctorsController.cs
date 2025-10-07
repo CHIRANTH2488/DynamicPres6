@@ -1,13 +1,14 @@
 ﻿//Doctors controller
 
+using Hospital_Management_system.Models;
+using Hospital_Management_system.Models.DTOs;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Hospital_Management_system.Models;
 
 namespace Hospital_Management_system.Controllers
 {
@@ -45,15 +46,28 @@ namespace Hospital_Management_system.Controllers
 
         // PUT: api/Doctors/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        // PUT: api/Doctors/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutDoctor(int id, Doctor doctor)
+        public async Task<IActionResult> PutDoctor(int id, [FromBody] DoctorUpdateDto doctorDto)
         {
-            if (id != doctor.DocId)
+            if (id != doctorDto.DocId)
             {
-                return BadRequest();
+                return BadRequest(new { message = "Doctor ID mismatch" });
             }
 
-            _context.Entry(doctor).State = EntityState.Modified;
+            var doctor = await _context.Doctors.FindAsync(id);
+            if (doctor == null)
+            {
+                return NotFound(new { message = "Doctor not found" });
+            }
+
+            // Update only the fields from DTO
+            doctor.FullName = doctorDto.FullName;
+            doctor.Specialisation = doctorDto.Specialisation;
+            doctor.HPID = doctorDto.HPID;
+            doctor.Availability = doctorDto.Availability;
+            doctor.ContactNo = doctorDto.ContactNo;
+            // Note: UserId should not be changed
 
             try
             {
@@ -71,9 +85,28 @@ namespace Hospital_Management_system.Controllers
                 }
             }
 
-            return NoContent();
+            return Ok(new { message = "Profile updated successfully" });
         }
 
+        // GET: api/Doctors/check-contact/{contactNo}
+        [HttpGet("check-contact/{contactNo}")]
+        public async Task<ActionResult<bool>> CheckContactExists(string contactNo, [FromQuery] int? excludeDoctorId)
+        {
+            var exists = await _context.Doctors
+                .AnyAsync(d => d.ContactNo == contactNo && d.DocId != excludeDoctorId);
+
+            return Ok(new { exists });
+        }
+
+        // GET: api/Doctors/check-hpid/{hpid}
+        [HttpGet("check-hpid/{hpid}")]
+        public async Task<ActionResult<bool>> CheckHpidExists(string hpid, [FromQuery] int? excludeDoctorId)
+        {
+            var exists = await _context.Doctors
+                .AnyAsync(d => d.HPID == hpid && d.DocId != excludeDoctorId);
+
+            return Ok(new { exists });
+        }
 
         // POST: api/Doctors
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754

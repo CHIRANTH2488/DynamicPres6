@@ -41,7 +41,16 @@
             <span *ngIf="appointment.medicines">
               <strong>Medicines:</strong> {{ appointment.medicines }}<br>
             </span>
+            <span *ngIf="appointment.invoiceAmount">
+              <strong>Invoice Amount:</strong> ₹{{ appointment.invoiceAmount }}<br>
+              <strong>Payment Status:</strong> 
+              <span class="badge" [ngClass]="getPaymentBadgeClass(appointment.invoiceStatus)">
+                {{ appointment.invoiceStatus }}
+              </span>
+            </span>
           </p>
+          
+          <!-- Only show cancel button, no payment button -->
           <button
             *ngIf="canCancel(appointment.appointmentStatus)"
             class="btn btn-sm btn-danger"

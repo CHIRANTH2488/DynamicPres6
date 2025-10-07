@@ -37,4 +37,8 @@
         public string? Medicines { get; set; }
         public decimal? InvoiceAmount { get; set; }
     }
+    public class PaymentUpdateDto
+    {
+        public string InvoiceStatus { get; set; } = null!; // "Pending", "Paid", "Cancelled"
+    }
 }

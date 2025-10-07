@@ -76,6 +76,15 @@ export class MyAppointmentsComponent implements OnInit {
     }
   }
 
+  getPaymentBadgeClass(status: string): string {
+    switch (status) {
+      case 'Paid': return 'bg-success';
+      case 'Pending': return 'bg-warning text-dark';
+      case 'Cancelled': return 'bg-secondary';
+      default: return 'bg-secondary';
+    }
+  }
+
   canCancel(status: string): boolean {
     return status === 'Pending' || status === 'Confirmed';
   }

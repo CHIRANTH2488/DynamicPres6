@@ -38,13 +38,16 @@
 
             <div class="mb-3">
               <label for="appointmentTime" class="form-label">Appointment Time</label>
-              <input
-                type="time"
+              <select
                 id="appointmentTime"
                 formControlName="appointmentTime"
                 class="form-control"
                 [class.is-invalid]="appointmentForm.get('appointmentTime')?.invalid && appointmentForm.get('appointmentTime')?.touched"
+                required
               >
+                <option value="" disabled selected>Select a time slot</option>
+                <option *ngFor="let slot of availableSlots" [value]="slot">{{ slot }}</option>
+              </select>
               <div *ngIf="appointmentForm.get('appointmentTime')?.invalid && appointmentForm.get('appointmentTime')?.touched" class="invalid-feedback">
                 Time is required.
               </div>

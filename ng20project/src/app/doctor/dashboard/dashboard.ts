@@ -114,6 +114,33 @@ export class DoctorDashboardComponent implements OnInit {
     this.rejectionReason = '';
   }
 
+  markAsPaid(appointmentId: number): void {
+  if (!confirm('Confirm that payment has been received for this appointment?')) {
+    return;
+  }
+
+  this.appointmentService.updatePaymentStatus(appointmentId, 'Paid').subscribe({
+    next: () => {
+      this.successMessage = 'Payment marked as received!';
+      this.loadAllAppointments();
+      setTimeout(() => this.successMessage = '', 3000);
+    },
+    error: (error) => {
+      console.error('Error updating payment:', error);
+      this.errorMessage = 'Failed to update payment status.';
+    }
+  });
+}
+
+getPaymentBadgeClass(status: string): string {
+  switch (status) {
+    case 'Paid': return 'bg-success';
+    case 'Pending': return 'bg-warning text-dark';
+    case 'Cancelled': return 'bg-secondary';
+    default: return 'bg-secondary';
+  }
+}
+
   rejectAppointment(): void {
     if (!this.selectedAppointmentId) return;
 

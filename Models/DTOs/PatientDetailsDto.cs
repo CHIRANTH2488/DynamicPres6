@@ -9,4 +9,5 @@
         public string Address { get; set; }
         public string Aadhaar_no { get; set; }
     }
+    
 }

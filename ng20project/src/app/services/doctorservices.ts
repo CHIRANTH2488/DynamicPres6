@@ -12,6 +12,16 @@ export interface Doctor {
   contactNo: string;
 }
 
+export interface DoctorUpdateDto {
+  docId: number;
+  userId: number;
+  fullName: string;
+  specialisation?: string;
+  hpid?: string;
+  availability?: string;
+  contactNo?: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -30,5 +40,9 @@ export class DoctorService {
 
   getDoctorsBySpecialization(specialization: string): Observable<Doctor[]> {
     return this.http.get<Doctor[]>(`${this.apiUrl}/specialization/${specialization}`);
+  }
+
+  updateDoctor(id: number, data: DoctorUpdateDto): Observable<any> {
+    return this.http.put(`${this.apiUrl}/${id}`, data);
   }
 }

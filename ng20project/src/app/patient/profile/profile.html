@@ -4,7 +4,9 @@
       <div class="card">
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="card-title mb-0">My Profile</h2>
+            <h2 class="card-title mb-4">
+              Profile: {{ patientPrefix }} {{ profileForm.value.fullName }}
+            </h2>
             <button 
               type="button" 
               class="btn btn-primary"
@@ -79,7 +81,12 @@
               <div *ngIf="profileForm.get('contactNo')?.invalid && profileForm.get('contactNo')?.touched" class="invalid-feedback">
                 Please enter a valid 10-digit contact number.
               </div>
+              <div *ngIf="profileForm.get('contactNo')?.errors?.['contactTaken']" class="invalid-feedback d-block">
+                This contact number is already registered.
+              </div>
+                            
             </div>
+            
 
             <div class="mb-3">
               <label for="address" class="form-label">Address</label>
@@ -91,20 +98,23 @@
               ></textarea>
             </div>
 
-            <div class="mb-3">
-              <label for="Aadhaar_no" class="form-label">Aadhaar Number</label>
+            <!-- <div class="mb-3">
+              <label for="aadhaarNo" class="form-label">Aadhaar Number</label>
               <input
                 type="text"
-                id="Aadhaar_no"
-                formControlName="Aadhaar_no"
+                id="aadhaarNo"
+                formControlName="aadhaarNo"
                 class="form-control"
                 placeholder="12-digit Aadhaar number"
-                [class.is-invalid]="profileForm.get('Aadhaar_No')?.invalid && profileForm.get('Aadhaar_No')?.touched"
+                [class.is-invalid]="profileForm.get('aadhaarNo')?.invalid && profileForm.get('aadhaarNo')?.touched"
               >
-              <div *ngIf="profileForm.get('Aadhaar_no')?.invalid && profileForm.get('Aadhaar_no')?.touched" class="invalid-feedback">
+              <div *ngIf="profileForm.get('aadhaarNo')?.invalid && profileForm.get('aadhaarNo')?.touched" class="invalid-feedback">
                 Please enter a valid 12-digit Aadhaar number.
               </div>
-            </div>
+              <div *ngIf="profileForm.get('aadhaarNo')?.errors?.['aadhaarTaken']" class="invalid-feedback d-block">
+                This Aadhaar number is already registered.
+              </div>
+            </div> -->
 
             <div class="d-flex gap-2" *ngIf="isEditMode">
               <button 

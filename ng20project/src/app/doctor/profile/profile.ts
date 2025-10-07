@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { DoctorService, Doctor } from '../../services/doctorservices';
+import { DoctorService, Doctor, DoctorUpdateDto } from '../../services/doctorservices';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
@@ -114,21 +114,22 @@ export class DoctorProfileComponent implements OnInit {
   this.errorMessage = '';
   this.successMessage = '';
 
-  // Send complete doctor object with all fields
-  const updateData = {
+  // Create update DTO matching backend expectations
+  const updateData: DoctorUpdateDto = {
     docId: this.doctorId,
-    userId: this.doctorData.userId,  // Now guaranteed to be a number
+    userId: this.doctorData.userId,
     fullName: this.profileForm.value.fullName,
-    specialisation: this.profileForm.value.specialisation,
-    hpid: this.profileForm.value.hpid,
-    availability: this.profileForm.value.availability,
-    contactNo: this.profileForm.value.contactNo
+    specialisation: this.profileForm.value.specialisation || null,
+    hpid: this.profileForm.value.hpid || null,
+    availability: this.profileForm.value.availability || null,
+    contactNo: this.profileForm.value.contactNo || null
   };
 
-  console.log('Sending update data:', updateData); // Debug log
+  console.log('Sending update data:', updateData);
 
-  this.http.put(`https://localhost:7090/api/Doctors/${this.doctorId}`, updateData).subscribe({
-    next: () => {
+  this.doctorService.updateDoctor(this.doctorId, updateData).subscribe({
+    next: (response) => {
+      console.log('Update response:', response);
       this.successMessage = 'Profile updated successfully!';
       this.isEditMode = false;
       this.profileForm.disable();
@@ -142,12 +143,15 @@ export class DoctorProfileComponent implements OnInit {
         localStorage.setItem('user', JSON.stringify(userData));
       }
       
+      // Reload profile to show updated data
+      this.loadProfile();
+      
       setTimeout(() => this.successMessage = '', 3000);
     },
     error: (error) => {
       console.error('Error updating profile:', error);
       console.error('Error details:', error.error);
-      this.errorMessage = 'Failed to update profile.';
+      this.errorMessage = error.error?.message || 'Failed to update profile.';
       this.isLoading = false;
     }
   });
