@@ -28,6 +28,9 @@
           <div *ngIf="registrationForm.get('email')?.errors?.['required']">Email is required.</div>
           <div *ngIf="registrationForm.get('email')?.errors?.['email']">Invalid email format.</div>
         </div>
+        <div *ngIf="registrationForm.get('email')?.errors?.['doctorDomain'] && registrationForm.get('email')?.touched" class="invalid-feedback">
+          Doctor email must end with @swasthatech.com.
+        </div>
       </div>
       
       <div class="mb-3">
@@ -39,8 +42,11 @@
           class="form-control"
           [class.is-invalid]="registrationForm.get('pswdHash')?.invalid && registrationForm.get('pswdHash')?.touched"
         >
-        <div *ngIf="registrationForm.get('pswdHash')?.invalid && registrationForm.get('pswdHash')?.touched" class="invalid-feedback">
+        <!-- <div *ngIf="registrationForm.get('pswdHash')?.invalid && registrationForm.get('pswdHash')?.touched" class="invalid-feedback">
           Password is required.
+        </div> -->
+        <div *ngIf="getPasswordError()" class="error">
+          {{ getPasswordError() }}
         </div>
       </div>
 

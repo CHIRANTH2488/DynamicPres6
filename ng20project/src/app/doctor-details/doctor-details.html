@@ -30,6 +30,9 @@
           <div *ngIf="doctorDetailsForm.get('fullName')?.errors?.['required']">Full name is required.</div>
           <div *ngIf="doctorDetailsForm.get('fullName')?.errors?.['minlength']">Full name must be at least 3 characters.</div>
         </div>
+        <div *ngIf="doctorDetailsForm.get('fullName')?.errors?.['noNumbers'] && doctorDetailsForm.get('fullName')?.touched" class="invalid-feedback">
+          Full Name cannot contain numbers.
+        </div>
       </div>
       
       <!-- Specialisation -->
@@ -71,7 +74,8 @@
         />
         <div *ngIf="doctorDetailsForm.get('hpid')?.invalid && doctorDetailsForm.get('hpid')?.touched" class="invalid-feedback">
           <div *ngIf="doctorDetailsForm.get('hpid')?.errors?.['required']">HPID is required.</div>
-          <div *ngIf="doctorDetailsForm.get('hpid')?.errors?.['pattern']">HPID must be 6-15 alphanumeric characters.</div>
+          <div *ngIf="doctorDetailsForm.get('hpid')?.errors?.['hpidFormat']">HPID must be a 14 digit number.</div>
+          <div *ngIf="doctorDetailsForm.get('hpid')?.errors?.['hpidDate']">First 8 digits must be a valid date (YYYYMMDD).</div>
         </div>
       </div>
       
@@ -92,7 +96,7 @@
         </div>
       </div>
       
-      <!-- <div class="d-grid gap-2">
+      <div class="d-grid gap-2">
         <button
           type="submit"
           class="btn btn-primary"
@@ -101,14 +105,14 @@
           Submit Details
         </button>
         
-        <button
+        <!-- <button
           type="button"
           class="btn btn-outline-secondary"
           (click)="skipForNow()"
         >
           Skip for Now
-        </button>
-      </div> -->
+        </button> -->
+      </div>
     </form>
     
     <p class="mt-3 text-center text-muted small">

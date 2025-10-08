@@ -4,6 +4,38 @@ import { Router } from '@angular/router';
 import { UserService } from '../services/userservices';
 import { CommonModule } from '@angular/common';
 
+// Custom HPID validator
+function hpidValidator(control: any) {
+  const value = control.value;
+  if (!/^\d{14}$/.test(value)) {
+    return { hpidFormat: true };
+  }
+  const datePart = value.substring(0, 8);
+  const year = parseInt(datePart.substring(0, 4), 10);
+  const month = parseInt(datePart.substring(4, 6), 10);
+  const day = parseInt(datePart.substring(6, 8), 10);
+
+  // Basic date validation
+  const date = new Date(year, month - 1, day);
+  if (
+    date.getFullYear() !== year ||
+    date.getMonth() + 1 !== month ||
+    date.getDate() !== day
+  ) {
+    return { hpidDate: true };
+  }
+  return null;
+}
+
+// Custom noNumbers validator
+function noNumbersValidator(control: any) {
+  const value = control.value;
+  if (/\d/.test(value)) {
+    return { noNumbers: true };
+  }
+  return null;
+}
+
 @Component({
   selector: 'app-doctor-details',
   templateUrl: './doctor-details.html',
@@ -33,9 +65,9 @@ export class DoctorDetails implements OnInit {
     this.userId = parseInt(storedUserId);
 
     this.doctorDetailsForm = this.fb.group({
-      fullName: ['', [Validators.required, Validators.minLength(3)]],
+      fullName: ['', [Validators.required, Validators.minLength(3), noNumbersValidator]],
       specialisation: ['', [Validators.required]],
-      hpid: ['', [Validators.required, Validators.pattern(/^[A-Z0-9]{6,15}$/)]],
+      hpid: ['', [Validators.required, hpidValidator]],
       contactNo: ['', [Validators.required, Validators.pattern(/^[0-9]{10}$/)]]
     });
   }

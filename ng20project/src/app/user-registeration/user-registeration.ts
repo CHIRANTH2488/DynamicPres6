@@ -29,11 +29,15 @@ export class UserRegisteration {
 
   ngOnInit(): void {
     this.registrationForm = this.fb.group({
-  email: ['', [Validators.required, Validators.email]],
-  pswdHash: ['', Validators.required],
-  confirmPassword: ['', Validators.required],
-  role: ['', Validators.required]
-}, { validators: this.passwordsMatchValidator });
+      email: ['', [Validators.required, Validators.email]],
+      pswdHash: ['', [
+        Validators.required,
+        Validators.minLength(10),
+        Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$^&])[A-Za-z\d!@#$^&]{10,}$/)
+      ]],
+      confirmPassword: ['', Validators.required],
+      role: ['', Validators.required]
+    }, { validators: [this.passwordsMatchValidator, this.doctorEmailDomainValidator] });
   }
 
   onCaptchaValidated(isValid: boolean): void {
@@ -47,6 +51,26 @@ export class UserRegisteration {
     form.get('confirmPassword')?.setErrors({ passwordMismatch: true });
   } else {
     form.get('confirmPassword')?.setErrors(null);
+  }
+  return null;
+}
+
+  doctorEmailDomainValidator(form: FormGroup) {
+  const role = form.get('role')?.value;
+  const email = form.get('email')?.value;
+  if (role === 'Doctor' && email && !email.endsWith('@swasthatech.com')) {
+    form.get('email')?.setErrors({ doctorDomain: true });
+  } else {
+    // Preserve other errors if any
+    const errors = form.get('email')?.errors;
+    if (errors) {
+      delete errors['doctorDomain'];
+      if (Object.keys(errors).length === 0) {
+        form.get('email')?.setErrors(null);
+      } else {
+        form.get('email')?.setErrors(errors);
+      }
+    }
   }
   return null;
 }
@@ -103,5 +127,34 @@ export class UserRegisteration {
         this.errorMessage = error.error || 'Registration failed. Please try again.';
       }
     });
+  }
+
+  getPasswordError(): string {
+    const control = this.registrationForm.get('pswdHash');
+    if (!control || !control.errors || !control.touched) return '';
+
+    if (control.errors['required']) {
+      return 'Password is required.';
+    }
+    if (control.errors['minlength']) {
+      return 'Password must be at least 10 characters long.';
+    }
+    if (control.errors['pattern']) {
+      const value = control.value || '';
+      if (!/[A-Z]/.test(value)) {
+        return 'Password must contain at least one uppercase letter.';
+      }
+      if (!/[a-z]/.test(value)) {
+        return 'Password must contain at least one lowercase letter.';
+      }
+      if (!/\d/.test(value)) {
+        return 'Password must contain at least one number.';
+      }
+      if (!/[!@#$^&]/.test(value)) {
+        return 'Password must contain at least one special character (!@#$^&).';
+      }
+      return 'Password does not meet the required criteria.';
+    }
+    return '';
   }
 }

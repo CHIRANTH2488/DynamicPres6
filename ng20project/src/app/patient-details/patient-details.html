@@ -15,6 +15,26 @@
     </div>
     
     <form [formGroup]="patientDetailsForm" (ngSubmit)="onSubmit()">
+
+      <!-- Prefix -->
+      <div class="mb-3">
+        <label for="prefix" class="form-label">Prefix <span class="text-danger">*</span></label>
+        <select
+          id="prefix"
+          formControlName="prefix"
+          class="form-select"
+          [class.is-invalid]="patientDetailsForm.get('prefix')?.invalid && patientDetailsForm.get('prefix')?.touched"
+        >
+          <option value="" disabled>Select prefix</option>
+          <option value="Mr">Mr</option>
+          <option value="Mrs">Mrs</option>
+          <option value="Ms">Ms</option>
+          <option value="Master">Master</option>
+        </select>
+        <div *ngIf="patientDetailsForm.get('prefix')?.invalid && patientDetailsForm.get('prefix')?.touched" class="invalid-feedback">
+          Prefix is required.
+        </div>
+      </div>
       <!-- Full Name -->
       <div class="mb-3">
         <label for="fullName" class="form-label">Full Name <span class="text-danger">*</span></label>
@@ -118,8 +138,9 @@
           <div *ngIf="patientDetailsForm.get('aadhaar_no')?.errors?.['pattern']">Aadhaar number must be exactly 12 digits.</div>
         </div>
       </div>
+    
       
-      <!-- <div class="d-grid gap-2">
+      <div class="d-grid gap-2">
         <button
           type="submit"
           class="btn btn-primary"
@@ -128,14 +149,14 @@
           Submit Details
         </button>
         
-        <button
+        <!-- <button
           type="button"
           class="btn btn-outline-secondary"
           (click)="skipForNow()"
         >
           Skip for Now
-        </button>
-      </div> -->
+        </button> -->
+      </div>
     </form>
     
     <p class="mt-3 text-center text-muted small">

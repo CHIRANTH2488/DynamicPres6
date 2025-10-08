@@ -38,6 +38,7 @@ export class PatientDetails implements OnInit {
     this.maxDate = today.toISOString().split('T')[0];
 
     this.patientDetailsForm = this.fb.group({
+      prefix: ['', Validators.required],
       fullName: ['', [Validators.required, Validators.minLength(3)]],
       dob: ['', [Validators.required]],
       gender: ['', [Validators.required]],
