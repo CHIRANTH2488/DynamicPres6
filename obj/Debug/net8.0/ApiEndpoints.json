@@ -396,6 +396,22 @@
     ]
   },
   {
+    "ContainingType": "Hospital_Management_system.Controllers.AppointmentsController",
+    "Method": "SavePrescription",
+    "RelativePath": "api/Appointments/save-prescription",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "Hospital_Management_system.Models.DTOs.PrescriptionDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "Hospital_Management_system.Controllers.DoctorsController",
     "Method": "GetDoctors",
     "RelativePath": "api/Doctors",

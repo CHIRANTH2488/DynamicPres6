@@ -568,7 +568,20 @@ namespace Hospital_Management_system.Controllers
 
             return NoContent();
         }
+        [HttpPost("save-prescription")]
+        public async Task<IActionResult> SavePrescription([FromBody] PrescriptionDto dto)
+        {
+            var appointment = await _context.Appointments.FindAsync(dto.AppointmentId);
+            if (appointment == null) return NotFound("Appointment not found.");
 
+            appointment.Diagnosis = dto.Diagnosis;
+            appointment.Medicines = System.Text.Json.JsonSerializer.Serialize(dto.Medicines);
+            appointment.Symptoms = dto.History + "\n" + dto.PastHistory + "\nAdvice: " + dto.Advice;
+            appointment.AppointmentStatus = "Completed";
+
+            await _context.SaveChangesAsync();
+            return Ok();
+        }
         private bool AppointmentExists(int id)
         {
             return _context.Appointments.Any(e => e.AppointmentId == id);

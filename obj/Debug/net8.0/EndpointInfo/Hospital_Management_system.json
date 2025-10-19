@@ -730,6 +730,37 @@
         }
       }
     },
+    "/api/Appointments/save-prescription": {
+      "post": {
+        "tags": [
+          "Appointments"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PrescriptionDto"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PrescriptionDto"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/PrescriptionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/Doctors": {
       "get": {
         "tags": [
@@ -2107,6 +2138,35 @@
         "properties": {
           "invoiceStatus": {
             "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "PrescriptionDto": {
+        "type": "object",
+        "properties": {
+          "appointmentId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "diagnosis": {
+            "type": "string",
+            "nullable": true
+          },
+          "history": {
+            "type": "string",
+            "nullable": true
+          },
+          "pastHistory": {
+            "type": "string",
+            "nullable": true
+          },
+          "advice": {
+            "type": "string",
+            "nullable": true
+          },
+          "medicines": {
             "nullable": true
           }
         },
