@@ -1,12 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using Hospital_Management_system.Models;
+using Hospital_Management_system.Models.DTOs;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using Hospital_Management_system.Models;
-using Hospital_Management_system.Models.DTOs;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.Json;
+using System.Threading.Tasks;
+
 
 namespace Hospital_Management_system.Controllers
 {
@@ -20,7 +23,31 @@ namespace Hospital_Management_system.Controllers
         {
             _context = context;
         }
+        // In AppointmentsController.cs
+        [HttpGet("patient-data")]
+        public async Task<ActionResult<object>> GetPatientDataForApprovedAppointment(int appointmentId, int userId, string userRole)
+        {
+            try
+            {
+                var result = await _context.Database
+                    .SqlQueryRaw<object>(
+                        "EXEC GetPatientDataForApprovedAppointment @AppointmentId, @UserId, @UserRole",
+                        new SqlParameter("@AppointmentId", appointmentId),
+                        new SqlParameter("@UserId", userId),
+                        new SqlParameter("@UserRole", userRole)
+                    )
+                    .FirstOrDefaultAsync();
 
+                if (result == null)
+                    return NotFound("No data found or access denied.");
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
         // GET: api/Appointments
         [HttpGet]
         public async Task<ActionResult<IEnumerable<AppointmentResponseDto>>> GetAppointments()
@@ -111,6 +138,29 @@ namespace Hospital_Management_system.Controllers
                 .ToListAsync();
 
             return appointments;
+        }
+
+        [HttpGet("{id}/prescription")]
+        public async Task<ActionResult<PrescriptionDto>> GetPrescription(int id)
+        {
+            var prescription = await _context.Prescriptions
+                .FirstOrDefaultAsync(p => p.AppointmentID == id);
+
+            if (prescription == null)
+                return NotFound("Prescription not found for this appointment.");
+
+            return Ok(new PrescriptionDto
+            {
+                AppointmentId = prescription.AppointmentID,
+                Diagnosis = prescription.Diagnosis,
+                Medicines = string.IsNullOrEmpty(prescription.MedicinesJson)
+                    ? new List<MedicineDto>()
+                    : JsonSerializer.Deserialize<List<MedicineDto>>(prescription.MedicinesJson),
+                ChiefComplaints = prescription.ChiefComplaints,
+                PastHistory = prescription.PastHistory,
+                Examination = prescription.Examination,
+                Advice = prescription.Advice
+            });
         }
 
         // GET: api/Appointments/doctor/{doctorId}/pending
@@ -571,16 +621,51 @@ namespace Hospital_Management_system.Controllers
         [HttpPost("save-prescription")]
         public async Task<IActionResult> SavePrescription([FromBody] PrescriptionDto dto)
         {
+            if (dto == null || dto.AppointmentId <= 0)
+                return BadRequest("Invalid prescription data.");
+
             var appointment = await _context.Appointments.FindAsync(dto.AppointmentId);
-            if (appointment == null) return NotFound("Appointment not found.");
+            if (appointment == null)
+                return NotFound("Appointment not found.");
 
-            appointment.Diagnosis = dto.Diagnosis;
-            appointment.Medicines = System.Text.Json.JsonSerializer.Serialize(dto.Medicines);
-            appointment.Symptoms = dto.History + "\n" + dto.PastHistory + "\nAdvice: " + dto.Advice;
+            if (appointment.AppointmentStatus != "Confirmed")
+                return BadRequest("Only confirmed appointments can be completed with a prescription.");
+
+            // Check if prescription already exists (for update)
+            var existingPrescription = await _context.Prescriptions
+                .FirstOrDefaultAsync(p => p.AppointmentID == dto.AppointmentId);
+
+            if (existingPrescription != null)
+            {
+                // Update existing
+                existingPrescription.Diagnosis = dto.Diagnosis ?? existingPrescription.Diagnosis;
+                existingPrescription.MedicinesJson = JsonSerializer.Serialize(dto.Medicines ?? JsonSerializer.Deserialize<List<MedicineDto>>(existingPrescription.MedicinesJson));
+                existingPrescription.ChiefComplaints = dto.ChiefComplaints ?? existingPrescription.ChiefComplaints;
+                existingPrescription.PastHistory = dto.PastHistory ?? existingPrescription.PastHistory;
+                existingPrescription.Examination = dto.Examination ?? existingPrescription.Examination;
+                existingPrescription.Advice = dto.Advice ?? existingPrescription.Advice;
+                existingPrescription.UpdatedAt = DateTime.UtcNow;
+            }
+            else
+            {
+                // Create new
+                var prescription = new Prescription
+                {
+                    AppointmentID = dto.AppointmentId,
+                    Diagnosis = dto.Diagnosis ?? string.Empty,
+                    MedicinesJson = JsonSerializer.Serialize(dto.Medicines ?? new List<MedicineDto>()),
+                    ChiefComplaints = dto.ChiefComplaints ?? string.Empty,
+                    PastHistory = dto.PastHistory ?? string.Empty,
+                    Examination = dto.Examination ?? string.Empty,
+                    Advice = dto.Advice ?? string.Empty
+                };
+                _context.Prescriptions.Add(prescription);
+            }
+
             appointment.AppointmentStatus = "Completed";
-
             await _context.SaveChangesAsync();
-            return Ok();
+
+            return Ok(new { message = "Prescription saved and appointment completed successfully" });
         }
         private bool AppointmentExists(int id)
         {

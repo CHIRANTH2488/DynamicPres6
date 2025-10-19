@@ -1,69 +1,46 @@
 <div class="container mt-4">
   <h2 class="mb-4">Doctor Dashboard</h2>
 
+  <!-- Alerts -->
   <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show">
     {{ successMessage }}
     <button type="button" class="btn-close" (click)="successMessage = ''" aria-label="Close"></button>
   </div>
-
   <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show">
     {{ errorMessage }}
     <button type="button" class="btn-close" (click)="errorMessage = ''" aria-label="Close"></button>
   </div>
 
-  <!-- Tabs Navigation -->
+  <!-- Tabs -->
   <ul class="nav nav-tabs mb-4">
     <li class="nav-item">
-      <a 
-        class="nav-link" 
-        [class.active]="activeTab === 'requests'"
-        (click)="switchTab('requests')"
-        style="cursor: pointer;"
-      >
-        New Requests 
-        <span class="badge bg-warning text-dark ms-2">{{ pendingAppointments.length }}</span>
+      <a class="nav-link" [class.active]="activeTab === 'requests'" (click)="switchTab('requests')" style="cursor: pointer;">
+        New Requests <span class="badge bg-warning text-dark ms-2">{{ pendingAppointments.length }}</span>
       </a>
     </li>
     <li class="nav-item">
-      <a 
-        class="nav-link" 
-        [class.active]="activeTab === 'upcoming'"
-        (click)="switchTab('upcoming')"
-        style="cursor: pointer;"
-      >
-        Upcoming Appointments
-        <span class="badge bg-success ms-2">{{ upcomingAppointments.length }}</span>
+      <a class="nav-link" [class.active]="activeTab === 'upcoming'" (click)="switchTab('upcoming')" style="cursor: pointer;">
+        Upcoming Appointments <span class="badge bg-success ms-2">{{ upcomingAppointments.length }}</span>
       </a>
     </li>
     <li class="nav-item">
-      <a 
-        class="nav-link" 
-        [class.active]="activeTab === 'previous'"
-        (click)="switchTab('previous')"
-        style="cursor: pointer;"
-      >
-        Previous Appointments
-        <span class="badge bg-secondary ms-2">{{ previousAppointments.length }}</span>
+      <a class="nav-link" [class.active]="activeTab === 'previous'" (click)="switchTab('previous')" style="cursor: pointer;">
+        Previous Appointments <span class="badge bg-secondary ms-2">{{ previousAppointments.length }}</span>
       </a>
     </li>
   </ul>
 
-  <!-- Loading Spinner -->
+  <!-- Spinner -->
   <div *ngIf="isLoading" class="text-center">
-    <div class="spinner-border" role="status">
-      <span class="visually-hidden">Loading...</span>
-    </div>
+    <div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div>
   </div>
 
   <!-- Tab Content -->
   <div *ngIf="!isLoading">
-    
-    <!-- New Appointment Requests Tab -->
-    <div *ngIf="activeTab === 'requests'">
-      <div *ngIf="pendingAppointments.length === 0" class="alert alert-info">
-        No pending appointment requests.
-      </div>
 
+    <!-- Requests -->
+    <div *ngIf="activeTab === 'requests'">
+      <div *ngIf="pendingAppointments.length === 0" class="alert alert-info">No pending appointment requests.</div>
       <div class="row" *ngIf="pendingAppointments.length > 0">
         <div class="col-md-6 mb-3" *ngFor="let appointment of pendingAppointments">
           <div class="card border-warning">
@@ -91,12 +68,9 @@
       </div>
     </div>
 
-    <!-- Upcoming Appointments Tab -->
+    <!-- Upcoming -->
     <div *ngIf="activeTab === 'upcoming'">
-      <div *ngIf="upcomingAppointments.length === 0" class="alert alert-info">
-        No upcoming appointments.
-      </div>
-
+      <div *ngIf="upcomingAppointments.length === 0" class="alert alert-info">No upcoming appointments.</div>
       <div class="row" *ngIf="upcomingAppointments.length > 0">
         <div class="col-md-6 mb-3" *ngFor="let appointment of upcomingAppointments">
           <div class="card border-success">
@@ -109,29 +83,30 @@
                 <strong>Date:</strong> {{ formatDate(appointment.appointmentDate) }}<br>
                 <strong>Symptoms:</strong> {{ appointment.symptoms || 'N/A' }}
               </p>
-              <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#completeModal"
-                      (click)="openCompleteModal(appointment)">
-                <i class="bi bi-check2-square me-1"></i>Mark as Completed
-              </button>
+              <div class="d-flex gap-2">
+                <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#completeModal"
+                        (click)="openCompleteModal(appointment)">
+                  <i class="bi bi-check2-square me-1"></i>Mark as Completed
+                </button>
+                <button class="btn btn-outline-secondary btn-sm" (click)="openPrescriptionForm(appointment.appointmentId)">
+                  <i class="bi bi-file-earmark-medical me-1"></i>Complete with Prescription
+                </button>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Previous Appointments Tab -->
+    <!-- Previous -->
     <div *ngIf="activeTab === 'previous'">
-      <div *ngIf="previousAppointments.length === 0" class="alert alert-info">
-        No previous appointments.
-      </div>
-
+      <div *ngIf="previousAppointments.length === 0" class="alert alert-info">No previous appointments.</div>
       <div class="row" *ngIf="previousAppointments.length > 0">
         <div class="col-md-6 mb-3" *ngFor="let appointment of previousAppointments">
           <div class="card border-secondary">
             <div class="card-body">
               <div class="d-flex justify-content-between align-items-start mb-2">
                 <h5 class="card-title mb-0">{{ appointment.patientName }}</h5>
-                <!-- <span class="badge bg-secondary">Completed</span> -->
               </div>
               <p class="card-text">
                 <strong>Date:</strong> {{ formatDate(appointment.appointmentDate) }}<br>
@@ -144,27 +119,29 @@
                   {{ appointment.invoiceStatus }}
                 </span>
               </p>
-              
-              <!-- Payment button for doctors -->
               <ng-container *ngIf="appointment.invoiceStatus === 'Pending'">
-                <button 
-                  *ngIf="appointment.invoiceAmount"
-                  class="btn btn-success btn-sm"
-                  (click)="markAsPaid(appointment.appointmentId)"
-                >
+                <button *ngIf="appointment.invoiceAmount" class="btn btn-success btn-sm"
+                        (click)="markAsPaid(appointment.appointmentId)">
                   <i class="bi bi-cash me-1"></i>Mark as Paid
                 </button>
-                <span 
-                  *ngIf="!appointment.invoiceAmount"
-                  class="badge bg-danger"
-                >
-                  Cancelled
-                </span>
+                <span *ngIf="!appointment.invoiceAmount" class="badge bg-danger">Cancelled</span>
               </ng-container>
             </div>
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- Prescription Module -->
+    <div class="mt-4" *ngIf="showPrescriptionForm">
+      <app-prescription
+        [appointmentId]="selectedPrescriptionAppointmentId!"
+        [doctorId]="doctorId"
+        [patient]="patientData"
+        [doctor]="doctorData"
+        (save)="savePrescription($event)"
+        (cancel)="cancelPrescription()">
+      </app-prescription>
     </div>
 
   </div>
