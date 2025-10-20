@@ -1,14 +1,13 @@
 <div id="prescription" class="container border p-4 bg-white">
   <div class="d-flex justify-content-between align-items-center mb-3">
-    <img src="assets/logo.png" alt="Hospital Logo" height="50">
-    <h3 class="text-center flex-grow-1">Hospital Name</h3>
+    <img src="https://i.postimg.cc/Jh6NpCt7/Copilot-20251007-094058.png" style="height: 48px; margin-right: 16px;">
+    <h3 class="text-center flex-grow-1">SwasthaTech Hospital</h3>
     <div class="text-end">Doctor: {{ doctor.name || 'N/A' }} - {{ doctor.info || 'N/A' }}</div>
   </div>
 
   <div class="row mb-3">
     <div class="col">Patient Name: {{ patient.name || 'N/A' }}</div>
     <div class="col">Age: {{ patient.age || 0 }}</div>
-    <div class="col">Patient ID: {{ patient.id || 'N/A' }}</div>
     <div class="col">Date: {{ patient.date ? (patient.date | date:'shortDate') : 'N/A' }}</div>
   </div>
 
@@ -46,7 +45,7 @@
     </thead>
     <tbody>
       <tr *ngFor="let med of medicines; let i = index">
-        <td>{{ med.slNo }}</td>
+        <td>{{ i + 1 }}</td>
         <td><input class="form-control" [(ngModel)]="med.name" [readonly]="!isEditMode"></td>
         <td><input type="number" class="form-control" [(ngModel)]="med.morningBefore" [readonly]="!isEditMode"></td>
         <td><input type="number" class="form-control" [(ngModel)]="med.morningAfter" [readonly]="!isEditMode"></td>
@@ -69,8 +68,8 @@
   <div class="mb-3">
     <p>Doctor: {{ doctor.name || 'N/A' }}</p>
   </div>
-
-  <div class="text-center text-muted">Hospital Address | Contact Info | Website</div>
+  <h4 class="text-center flex-grow-1">SwasthaTech Hospital</h4>
+  <div class="text-center text-muted">Bellandur, Bengaluru - 560103 | +91 8888666623 | swasthatech@gmail.com </div>
 </div>
 
 <div class="mt-3 d-flex gap-2">

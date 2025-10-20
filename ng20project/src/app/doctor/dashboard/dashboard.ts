@@ -40,6 +40,7 @@ export class DoctorDashboardComponent implements OnInit {
     this.loadDoctorId();
     this.loadAllAppointments();
     this.loadDoctorData();
+    console.log('Upcoming appointments:', this.upcomingAppointments);
   }
 
   loadDoctorId(): void {
@@ -54,11 +55,14 @@ export class DoctorDashboardComponent implements OnInit {
     this.http.get(`https://localhost:7090/api/Doctors/${this.doctorId}`).subscribe({
       next: (data: any) => {
         this.doctorData = {
-          name: data.fullName,
-          info: data.specialisation
+          name: data.fullName || 'N/A',
+          info: data.specialisation || 'N/A'
         };
       },
-      error: (err) => console.error('Error fetching doctor:', err)
+      error: (err) => {
+        console.error('Error fetching doctor:', err);
+        this.errorMessage = 'Failed to load doctor data.';
+      }
     });
   }
 
@@ -191,21 +195,45 @@ export class DoctorDashboardComponent implements OnInit {
     });
   }
 
-  openPrescriptionForm(appointmentId: number): void {
-    this.selectedPrescriptionAppointmentId = appointmentId;
+  openPrescriptionForm(appointment: AppointmentResponseDto): void {
+    if (!appointment || !appointment.appointmentId) {
+      console.error('Invalid appointment data:', appointment);
+      this.errorMessage = 'Cannot open prescription form: Invalid appointment data.';
+      return;
+    }
+
+    this.selectedPrescriptionAppointmentId = appointment.appointmentId;
     this.showPrescriptionForm = true;
+    this.patientData = {
+      name: appointment.patientName || 'N/A',
+      age: 0,
+      date: appointment.appointmentDate ? new Date(appointment.appointmentDate) : null
+    };
+
     this.http.get(`https://localhost:7090/api/Appointments/patient-data`, {
-      params: { appointmentId: appointmentId, userId: this.doctorId, userRole: 'Doctor' }
+      params: {
+        appointmentId: appointment.appointmentId.toString(),
+        userId: this.doctorId.toString(),
+        userRole: 'Doctor'
+      }
     }).subscribe({
       next: (data: any) => {
         this.patientData = {
-          name: data.fullName,
-          age: this.calculateAge(data.dob),
-          id: data.aadhaar_no,
-          date: new Date(data.appointmentDate)
+          name: data.fullName || appointment.patientName || 'N/A',
+          age: data.dob ? this.calculateAge(data.dob) : 0,
+          date: data.appointmentDate ? new Date(data.appointmentDate) : (appointment.appointmentDate ? new Date(appointment.appointmentDate) : null)
         };
+        console.log('Patient data fetched successfully:', this.patientData);
       },
-      error: (err) => console.error('Error fetching patient:', err)
+      error: (err) => {
+        console.error('Error fetching patient details:', err);
+        this.errorMessage = 'Failed to load patient age. Using available data.';
+        this.patientData = {
+          name: appointment.patientName || 'N/A',
+          age: 0,
+          date: appointment.appointmentDate ? new Date(appointment.appointmentDate) : null
+        };
+      }
     });
   }
 
@@ -240,13 +268,14 @@ export class DoctorDashboardComponent implements OnInit {
   }
 
   formatDate(date: string): string {
-    return new Date(date).toLocaleString();
+    return date ? new Date(date).toLocaleString() : 'N/A';
   }
 
   private calculateAge(dob: string): number {
     if (!dob) return 0;
-    const today = new Date();
     const birthDate = new Date(dob);
+    if (isNaN(birthDate.getTime())) return 0;
+    const today = new Date();
     let age = today.getFullYear() - birthDate.getFullYear();
     const monthDiff = today.getMonth() - birthDate.getMonth();
     if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {

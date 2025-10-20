@@ -26,8 +26,8 @@ interface Medicine {
 export class PrescriptionComponent implements OnInit {
   @Input() appointmentId!: number;
   @Input() doctorId!: number;
-  @Input() patient: any = { name: '', age: 0, id: '', date: new Date() };
-  @Input() doctor: any = { name: '', info: '' };
+  @Input() patient: any = { name: 'N/A', age: 0, date: null };
+  @Input() doctor: any = { name: 'N/A', info: 'N/A' };
   @Output() save = new EventEmitter<any>();
   @Output() cancel = new EventEmitter<void>();
 
@@ -41,9 +41,20 @@ export class PrescriptionComponent implements OnInit {
   constructor(private http: HttpClient) {}
 
   ngOnInit(): void {
-    this.loadPrescription();
-    if (!this.patient.name || !this.doctor.name) {
-      this.fetchPatientData();
+    if (this.appointmentId) {
+      this.loadPrescription();
+      if (!this.patient.name || !this.patient.date || this.patient.age === 0) {
+        this.fetchPatientData();
+      }
+    } else {
+      console.error('Appointment ID is undefined');
+      this.patient = {
+        name: this.patient.name || 'N/A',
+        age: this.patient.age || 0,
+        date: this.patient.date ? new Date(this.patient.date) : null
+      };
+    }
+    if (!this.doctor.name) {
       this.fetchDoctorData();
     }
     if (!this.medicines.length) {
@@ -52,18 +63,33 @@ export class PrescriptionComponent implements OnInit {
   }
 
   fetchPatientData() {
+    if (!this.appointmentId) {
+      console.error('Cannot fetch patient data: appointmentId is undefined');
+      return;
+    }
     this.http.get(`https://localhost:7090/api/Appointments/patient-data`, {
-      params: { appointmentId: this.appointmentId, userId: this.doctorId, userRole: 'Doctor' }
+      params: {
+        appointmentId: this.appointmentId.toString(),
+        userId: this.doctorId.toString(),
+        userRole: 'Doctor'
+      }
     }).subscribe({
       next: (data: any) => {
         this.patient = {
-          name: data.fullName,
-          age: this.calculateAge(data.dob),
-          id: data.aadhaar_no,
-          date: new Date(data.appointmentDate)
+          name: data.fullName || this.patient.name || 'N/A',
+          age: data.dob ? this.calculateAge(data.dob) : this.patient.age || 0,
+          date: data.appointmentDate ? new Date(data.appointmentDate) : (this.patient.date || null)
         };
+        console.log('Fetched patient data:', this.patient);
       },
-      error: (err) => console.error('Error fetching patient:', err)
+      error: (err) => {
+        console.error('Error fetching patient data:', err);
+        this.patient = {
+          name: this.patient.name || 'N/A',
+          age: this.patient.age || 0,
+          date: this.patient.date ? new Date(this.patient.date) : null
+        };
+      }
     });
   }
 
@@ -71,42 +97,48 @@ export class PrescriptionComponent implements OnInit {
     this.http.get(`https://localhost:7090/api/Doctors/${this.doctorId}`).subscribe({
       next: (data: any) => {
         this.doctor = {
-          name: data.fullName,
-          info: data.specialisation
+          name: data.fullName || 'N/A',
+          info: data.specialisation || 'N/A'
         };
       },
-      error: (err) => console.error('Error fetching doctor:', err)
+      error: (err) => {
+        console.error('Error fetching doctor:', err);
+        this.doctor = { name: 'N/A', info: 'N/A' };
+      }
     });
   }
 
   loadPrescription() {
-    this.http.get(`https://localhost:7090/api/Appointments/${this.appointmentId}/prescription`)
-      .subscribe({
-        next: (prescription: any) => {
-          this.chiefComplaints = prescription.ChiefComplaints || '';
-          this.pastHistory = prescription.PastHistory || '';
-          this.examination = prescription.Examination || '';
-          this.advice = prescription.Advice || '';
-          this.medicines = prescription.Medicines && prescription.Medicines.length
-            ? prescription.Medicines.map((m: any, i: number) => ({
-                slNo: m.SlNo || i + 1,
-                name: m.Name || '',
-                morningBefore: m.MorningBefore || 0,
-                morningAfter: m.MorningAfter || 0,
-                afternoonBefore: m.AfternoonBefore || 0,
-                afternoonAfter: m.AfternoonAfter || 0,
-                nightBefore: m.NightBefore || 0,
-                nightAfter: m.NightAfter || 0,
-                days: m.Days || 0
-              }))
-            : [this.createEmptyMedicine()];
-          this.isEditMode = false;
-        },
-        error: () => {
-          this.medicines = [this.createEmptyMedicine()];
-          this.isEditMode = true;
-        }
-      });
+    if (!this.appointmentId) {
+      console.error('Cannot load prescription: appointmentId is undefined');
+      return;
+    }
+    this.http.get(`https://localhost:7090/api/Appointments/${this.appointmentId}/prescription`).subscribe({
+      next: (prescription: any) => {
+        this.chiefComplaints = prescription.ChiefComplaints || '';
+        this.pastHistory = prescription.PastHistory || '';
+        this.examination = prescription.Examination || '';
+        this.advice = prescription.Advice || '';
+        this.medicines = prescription.Medicines && prescription.Medicines.length
+          ? prescription.Medicines.map((m: any, i: number) => ({
+              slNo: m.SlNo || i + 1,
+              name: m.Name || '',
+              morningBefore: m.MorningBefore || 0,
+              morningAfter: m.MorningAfter || 0,
+              afternoonBefore: m.AfternoonBefore || 0,
+              afternoonAfter: m.AfternoonAfter || 0,
+              nightBefore: m.NightBefore || 0,
+              nightAfter: m.NightAfter || 0,
+              days: m.Days || 0
+            }))
+          : [this.createEmptyMedicine()];
+        this.isEditMode = false;
+      },
+      error: () => {
+        this.medicines = [this.createEmptyMedicine()];
+        this.isEditMode = true;
+      }
+    });
   }
 
   createEmptyMedicine(): Medicine {
@@ -163,21 +195,20 @@ export class PrescriptionComponent implements OnInit {
   downloadPDF() {
     const doc = new jsPDF();
     doc.setFontSize(18);
-    doc.text('Hospital Name', 105, 20, { align: 'center' });
+    doc.text('SwasthaTech Hospital', 105, 20, { align: 'center' });
     doc.setFontSize(12);
     doc.text(`Doctor: ${this.doctor.name || 'N/A'} - ${this.doctor.info || 'N/A'}`, 150, 30, { align: 'right' });
     doc.text(`Patient: ${this.patient.name || 'N/A'}`, 20, 50);
     doc.text(`Age: ${this.patient.age || 0}`, 20, 60);
-    doc.text(`ID: ${this.patient.id || 'N/A'}`, 20, 70);
-    doc.text(`Date: ${this.patient.date?.toDateString() || 'N/A'}`, 20, 80);
-    doc.text('Chief Complaints & History:', 20, 90);
-    doc.text(this.chiefComplaints || 'N/A', 20, 100);
-    doc.text('Past History:', 20, 110);
-    doc.text(this.pastHistory || 'N/A', 20, 120);
-    doc.text('Examination:', 20, 130);
-    doc.text(this.examination || 'N/A', 20, 140);
-    doc.text('Medicines Prescribed:', 20, 150);
-    let y = 160;
+    doc.text(`Date: ${this.patient.date ? this.patient.date.toDateString() : 'N/A'}`, 20, 70);
+    doc.text('Chief Complaints & History:', 20, 80);
+    doc.text(this.chiefComplaints || 'N/A', 20, 90);
+    doc.text('Past History:', 20, 100);
+    doc.text(this.pastHistory || 'N/A', 20, 110);
+    doc.text('Examination:', 20, 120);
+    doc.text(this.examination || 'N/A', 20, 130);
+    doc.text('Medicines Prescribed:', 20, 140);
+    let y = 150;
     this.medicines.forEach(med => {
       doc.text(`${med.slNo}. ${med.name || 'N/A'} - Morning: ${med.morningBefore}/${med.morningAfter}, Afternoon: ${med.afternoonBefore}/${med.afternoonAfter}, Night: ${med.nightBefore}/${med.nightAfter}, Days: ${med.days}`, 20, y);
       y += 10;
@@ -185,14 +216,15 @@ export class PrescriptionComponent implements OnInit {
     doc.text('Advice & Follow-Up:', 20, y + 10);
     doc.text(this.advice || 'N/A', 20, y + 20);
     doc.text(`Doctor: ${this.doctor.name || 'N/A'}`, 150, y + 40, { align: 'right' });
-    doc.text('Hospital Footer Info', 105, 280, { align: 'center' });
+    doc.text('Bellandur, Bengaluru - 560103 | +91 8888666623 | swasthatech@gmail.com', 105, 280, { align: 'center' });
     doc.save('prescription.pdf');
   }
 
   private calculateAge(dob: string): number {
     if (!dob) return 0;
-    const today = new Date();
     const birthDate = new Date(dob);
+    if (isNaN(birthDate.getTime())) return 0;
+    const today = new Date();
     let age = today.getFullYear() - birthDate.getFullYear();
     const monthDiff = today.getMonth() - birthDate.getMonth();
     if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
