@@ -31,16 +31,20 @@ export class DoctorDashboardComponent implements OnInit {
   selectedCompletionAppointment: AppointmentResponseDto | null = null;
   selectedPrescriptionAppointmentId: number | null = null;
   showPrescriptionForm: boolean = false;
-  patientData: any = {};
-  doctorData: any = {};
+  patientData: any = { name: 'N/A', age: 0, date: null };
+  doctorData: any = { name: 'N/A', info: 'N/A' };
 
   constructor(private appointmentService: AppointmentService, private http: HttpClient) {}
 
   ngOnInit(): void {
     this.loadDoctorId();
-    this.loadAllAppointments();
-    this.loadDoctorData();
-    console.log('Upcoming appointments:', this.upcomingAppointments);
+    if (this.doctorId) {
+      this.loadDoctorData();
+      this.loadAllAppointments();
+    } else {
+      console.error('Doctor ID is undefined');
+      this.errorMessage = 'Doctor ID not found. Please log in again.';
+    }
   }
 
   loadDoctorId(): void {
@@ -48,20 +52,29 @@ export class DoctorDashboardComponent implements OnInit {
     if (user) {
       const userData = JSON.parse(user);
       this.doctorId = userData.doctorId || 0;
+      console.log('Loaded doctorId:', this.doctorId);
     }
   }
 
   loadDoctorData(): void {
+    if (!this.doctorId) {
+      console.error('Cannot load doctor data: doctorId is undefined');
+      this.doctorData = { name: 'N/A', info: 'N/A' };
+      return;
+    }
     this.http.get(`https://localhost:7090/api/Doctors/${this.doctorId}`).subscribe({
       next: (data: any) => {
+        console.log('Doctor data response:', data);
         this.doctorData = {
-          name: data.fullName || 'N/A',
-          info: data.specialisation || 'N/A'
+          name: data.fullName || data.FullName || 'N/A',
+          info: data.specialisation || data.Specialisation || 'N/A'
         };
+        console.log('Updated doctorData:', this.doctorData);
       },
       error: (err) => {
-        console.error('Error fetching doctor:', err);
+        console.error('Error fetching doctor data:', err);
         this.errorMessage = 'Failed to load doctor data.';
+        this.doctorData = { name: 'N/A', info: 'N/A' };
       }
     });
   }
@@ -70,7 +83,10 @@ export class DoctorDashboardComponent implements OnInit {
     this.isLoading = true;
 
     this.appointmentService.getDoctorPendingAppointments(this.doctorId).subscribe({
-      next: (data) => this.pendingAppointments = data,
+      next: (data) => {
+        this.pendingAppointments = data;
+        console.log('Pending appointments:', data);
+      },
       error: (error) => {
         console.error('Error loading pending appointments:', error);
         this.errorMessage = 'Failed to load new appointment requests.';
@@ -78,7 +94,10 @@ export class DoctorDashboardComponent implements OnInit {
     });
 
     this.appointmentService.getDoctorUpcomingAppointments(this.doctorId).subscribe({
-      next: (data) => this.upcomingAppointments = data,
+      next: (data) => {
+        this.upcomingAppointments = data;
+        console.log('Upcoming appointments:', data);
+      },
       error: (error) => {
         console.error('Error loading upcoming appointments:', error);
         this.errorMessage = 'Failed to load upcoming appointments.';
@@ -89,6 +108,7 @@ export class DoctorDashboardComponent implements OnInit {
       next: (data) => {
         this.previousAppointments = data;
         this.isLoading = false;
+        console.log('Previous appointments:', data);
       },
       error: (error) => {
         console.error('Error loading previous appointments:', error);
@@ -196,9 +216,9 @@ export class DoctorDashboardComponent implements OnInit {
   }
 
   openPrescriptionForm(appointment: AppointmentResponseDto): void {
-    if (!appointment || !appointment.appointmentId) {
-      console.error('Invalid appointment data:', appointment);
-      this.errorMessage = 'Cannot open prescription form: Invalid appointment data.';
+    if (!appointment || !appointment.appointmentId || !this.doctorId) {
+      console.error('Invalid appointment or doctor data:', { appointment, doctorId: this.doctorId });
+      this.errorMessage = 'Cannot open prescription form: Invalid appointment or doctor data.';
       return;
     }
 
@@ -218,21 +238,23 @@ export class DoctorDashboardComponent implements OnInit {
       }
     }).subscribe({
       next: (data: any) => {
+        console.log('Patient data response:', data);
         this.patientData = {
-          name: data.fullName || appointment.patientName || 'N/A',
-          age: data.dob ? this.calculateAge(data.dob) : 0,
-          date: data.appointmentDate ? new Date(data.appointmentDate) : (appointment.appointmentDate ? new Date(appointment.appointmentDate) : null)
+          name: data.FullName || data.fullName || appointment.patientName || 'N/A',
+          age: data.Age || data.age || 0,
+          date: data.AppointmentDate ? new Date(data.AppointmentDate) : (appointment.appointmentDate ? new Date(appointment.appointmentDate) : null)
         };
-        console.log('Patient data fetched successfully:', this.patientData);
+        console.log('Updated patientData:', this.patientData);
       },
       error: (err) => {
         console.error('Error fetching patient details:', err);
-        this.errorMessage = 'Failed to load patient age. Using available data.';
+        this.errorMessage = 'Failed to load patient data. Using available data.';
         this.patientData = {
           name: appointment.patientName || 'N/A',
           age: 0,
           date: appointment.appointmentDate ? new Date(appointment.appointmentDate) : null
         };
+        console.log('Fallback patientData:', this.patientData);
       }
     });
   }
@@ -269,18 +291,5 @@ export class DoctorDashboardComponent implements OnInit {
 
   formatDate(date: string): string {
     return date ? new Date(date).toLocaleString() : 'N/A';
-  }
-
-  private calculateAge(dob: string): number {
-    if (!dob) return 0;
-    const birthDate = new Date(dob);
-    if (isNaN(birthDate.getTime())) return 0;
-    const today = new Date();
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const monthDiff = today.getMonth() - birthDate.getMonth();
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-      age--;
-    }
-    return age;
   }
 }

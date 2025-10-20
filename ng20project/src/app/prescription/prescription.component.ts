@@ -43,9 +43,8 @@ export class PrescriptionComponent implements OnInit {
   ngOnInit(): void {
     if (this.appointmentId) {
       this.loadPrescription();
-      if (!this.patient.name || !this.patient.date || this.patient.age === 0) {
-        this.fetchPatientData();
-      }
+      this.fetchPatientData();
+      this.fetchDoctorData();
     } else {
       console.error('Appointment ID is undefined');
       this.patient = {
@@ -53,9 +52,7 @@ export class PrescriptionComponent implements OnInit {
         age: this.patient.age || 0,
         date: this.patient.date ? new Date(this.patient.date) : null
       };
-    }
-    if (!this.doctor.name) {
-      this.fetchDoctorData();
+      this.doctor = { name: 'N/A', info: 'N/A' };
     }
     if (!this.medicines.length) {
       this.addMedicine();
@@ -63,8 +60,11 @@ export class PrescriptionComponent implements OnInit {
   }
 
   fetchPatientData() {
-    if (!this.appointmentId) {
-      console.error('Cannot fetch patient data: appointmentId is undefined');
+    if (!this.appointmentId || !this.doctorId) {
+      console.error('Cannot fetch patient data: appointmentId or doctorId is undefined', {
+        appointmentId: this.appointmentId,
+        doctorId: this.doctorId
+      });
       return;
     }
     this.http.get(`https://localhost:7090/api/Appointments/patient-data`, {
@@ -75,35 +75,44 @@ export class PrescriptionComponent implements OnInit {
       }
     }).subscribe({
       next: (data: any) => {
+        console.log('Patient data response:', data);
         this.patient = {
-          name: data.fullName || this.patient.name || 'N/A',
-          age: data.dob ? this.calculateAge(data.dob) : this.patient.age || 0,
-          date: data.appointmentDate ? new Date(data.appointmentDate) : (this.patient.date || null)
+          name: data.FullName || data.fullName || 'N/A',
+          age: data.Age || data.age || 0,
+          date: data.AppointmentDate ? new Date(data.AppointmentDate) : null
         };
-        console.log('Fetched patient data:', this.patient);
+        console.log('Updated patient data:', this.patient);
       },
       error: (err) => {
         console.error('Error fetching patient data:', err);
         this.patient = {
           name: this.patient.name || 'N/A',
-          age: this.patient.age || 0,
+          age: 0,
           date: this.patient.date ? new Date(this.patient.date) : null
         };
+        console.log('Fallback patient data:', this.patient);
       }
     });
   }
 
   fetchDoctorData() {
+    if (!this.doctorId) {
+      console.error('Cannot fetch doctor data: doctorId is undefined');
+      return;
+    }
     this.http.get(`https://localhost:7090/api/Doctors/${this.doctorId}`).subscribe({
       next: (data: any) => {
+        console.log('Doctor data response:', data);
         this.doctor = {
-          name: data.fullName || 'N/A',
-          info: data.specialisation || 'N/A'
+          name: data.fullName || data.FullName || 'N/A',
+          info: data.specialisation || data.Specialisation || 'N/A'
         };
+        console.log('Updated doctor data:', this.doctor);
       },
       error: (err) => {
-        console.error('Error fetching doctor:', err);
+        console.error('Error fetching doctor data:', err);
         this.doctor = { name: 'N/A', info: 'N/A' };
+        console.log('Fallback doctor data:', this.doctor);
       }
     });
   }
@@ -115,6 +124,7 @@ export class PrescriptionComponent implements OnInit {
     }
     this.http.get(`https://localhost:7090/api/Appointments/${this.appointmentId}/prescription`).subscribe({
       next: (prescription: any) => {
+        console.log('Prescription data response:', prescription);
         this.chiefComplaints = prescription.ChiefComplaints || '';
         this.pastHistory = prescription.PastHistory || '';
         this.examination = prescription.Examination || '';
@@ -134,7 +144,12 @@ export class PrescriptionComponent implements OnInit {
           : [this.createEmptyMedicine()];
         this.isEditMode = false;
       },
-      error: () => {
+      error: (err) => {
+        console.warn('No prescription found for this appointment, initializing empty form:', err);
+        this.chiefComplaints = '';
+        this.pastHistory = '';
+        this.examination = '';
+        this.advice = '';
         this.medicines = [this.createEmptyMedicine()];
         this.isEditMode = true;
       }
@@ -218,18 +233,5 @@ export class PrescriptionComponent implements OnInit {
     doc.text(`Doctor: ${this.doctor.name || 'N/A'}`, 150, y + 40, { align: 'right' });
     doc.text('Bellandur, Bengaluru - 560103 | +91 8888666623 | swasthatech@gmail.com', 105, 280, { align: 'center' });
     doc.save('prescription.pdf');
-  }
-
-  private calculateAge(dob: string): number {
-    if (!dob) return 0;
-    const birthDate = new Date(dob);
-    if (isNaN(birthDate.getTime())) return 0;
-    const today = new Date();
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const monthDiff = today.getMonth() - birthDate.getMonth();
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-      age--;
-    }
-    return age;
   }
 }

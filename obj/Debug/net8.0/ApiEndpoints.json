@@ -419,7 +419,17 @@
         "IsRequired": false
       }
     ],
-    "ReturnTypes": []
+    "ReturnTypes": [
+      {
+        "Type": "Hospital_Management_system.Models.DTOs.PatientDetailsDto",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
   },
   {
     "ContainingType": "Hospital_Management_system.Controllers.AppointmentsController",
@@ -525,7 +535,7 @@
     ],
     "ReturnTypes": [
       {
-        "Type": "Hospital_Management_system.Models.Doctor",
+        "Type": "Hospital_Management_system.Models.DTOs.DoctorDto",
         "MediaTypes": [
           "text/plain",
           "application/json",
@@ -722,7 +732,7 @@
     ],
     "ReturnTypes": [
       {
-        "Type": "Hospital_Management_system.Models.Patient",
+        "Type": "Hospital_Management_system.Models.DTOs.PatientDto",
         "MediaTypes": [
           "text/plain",
           "application/json",

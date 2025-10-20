@@ -2,11 +2,11 @@
   <h2 class="mb-4">Doctor Dashboard</h2>
 
   <!-- Alerts -->
-  <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show">
+  <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show" data-debug="success-message">
     {{ successMessage }}
     <button type="button" class="btn-close" (click)="successMessage = ''" aria-label="Close"></button>
   </div>
-  <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show">
+  <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show" data-debug="error-message">
     {{ errorMessage }}
     <button type="button" class="btn-close" (click)="errorMessage = ''" aria-label="Close"></button>
   </div>
@@ -31,7 +31,7 @@
   </ul>
 
   <!-- Spinner -->
-  <div *ngIf="isLoading" class="text-center">
+  <div *ngIf="isLoading" class="text-center" data-debug="loading-spinner">
     <div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div>
   </div>
 
@@ -39,14 +39,14 @@
   <div *ngIf="!isLoading">
 
     <!-- Requests -->
-    <div *ngIf="activeTab === 'requests'">
+    <div *ngIf="activeTab === 'requests'" data-debug="requests-tab">
       <div *ngIf="pendingAppointments.length === 0" class="alert alert-info">No pending appointment requests.</div>
       <div class="row" *ngIf="pendingAppointments.length > 0">
-        <div class="col-md-6 mb-3" *ngFor="let appointment of pendingAppointments">
+        <div class="col-md-6 mb-3" *ngFor="let appointment of pendingAppointments" [attr.data-appointment-id]="appointment.appointmentId">
           <div class="card border-warning">
             <div class="card-body">
               <div class="d-flex justify-content-between align-items-start mb-2">
-                <h5 class="card-title mb-0">{{ appointment.patientName }}</h5>
+                <h5 class="card-title mb-0">{{ appointment.patientName || 'N/A' }}</h5>
                 <span class="badge bg-warning text-dark">Pending</span>
               </div>
               <p class="card-text">
@@ -69,14 +69,14 @@
     </div>
 
     <!-- Upcoming -->
-    <div *ngIf="activeTab === 'upcoming'">
+    <div *ngIf="activeTab === 'upcoming'" data-debug="upcoming-tab">
       <div *ngIf="upcomingAppointments.length === 0" class="alert alert-info">No upcoming appointments.</div>
       <div class="row" *ngIf="upcomingAppointments.length > 0">
-        <div class="col-md-6 mb-3" *ngFor="let appointment of upcomingAppointments">
+        <div class="col-md-6 mb-3" *ngFor="let appointment of upcomingAppointments" [attr.data-appointment-id]="appointment.appointmentId">
           <div class="card border-success">
             <div class="card-body">
               <div class="d-flex justify-content-between align-items-start mb-2">
-                <h5 class="card-title mb-0">{{ appointment.patientName }}</h5>
+                <h5 class="card-title mb-0">{{ appointment.patientName || 'N/A' }}</h5>
                 <span class="badge bg-success">Confirmed</span>
               </div>
               <p class="card-text">
@@ -99,14 +99,14 @@
     </div>
 
     <!-- Previous -->
-    <div *ngIf="activeTab === 'previous'">
+    <div *ngIf="activeTab === 'previous'" data-debug="previous-tab">
       <div *ngIf="previousAppointments.length === 0" class="alert alert-info">No previous appointments.</div>
       <div class="row" *ngIf="previousAppointments.length > 0">
-        <div class="col-md-6 mb-3" *ngFor="let appointment of previousAppointments">
+        <div class="col-md-6 mb-3" *ngFor="let appointment of previousAppointments" [attr.data-appointment-id]="appointment.appointmentId">
           <div class="card border-secondary">
             <div class="card-body">
               <div class="d-flex justify-content-between align-items-start mb-2">
-                <h5 class="card-title mb-0">{{ appointment.patientName }}</h5>
+                <h5 class="card-title mb-0">{{ appointment.patientName || 'N/A' }}</h5>
               </div>
               <p class="card-text">
                 <strong>Date:</strong> {{ formatDate(appointment.appointmentDate) }}<br>
@@ -133,14 +133,18 @@
     </div>
 
     <!-- Prescription Module -->
-    <div class="mt-4" *ngIf="showPrescriptionForm">
+    <div class="mt-4" *ngIf="showPrescriptionForm" data-debug="prescription-form">
       <app-prescription
         [appointmentId]="selectedPrescriptionAppointmentId!"
         [doctorId]="doctorId"
         [patient]="patientData"
         [doctor]="doctorData"
         (save)="savePrescription($event)"
-        (cancel)="cancelPrescription()">
+        (cancel)="cancelPrescription()"
+        [attr.data-patient-name]="patientData.name"
+        [attr.data-patient-age]="patientData.age"
+        [attr.data-doctor-name]="doctorData.name"
+        [attr.data-doctor-info]="doctorData.info">
       </app-prescription>
     </div>
 
@@ -187,7 +191,7 @@
       </div>
       <div class="modal-body">
         <div class="mb-3">
-          <label class="form-label"><strong>Patient:</strong> {{ selectedCompletionAppointment?.patientName }}</label>
+          <label class="form-label"><strong>Patient:</strong> {{ selectedCompletionAppointment?.patientName || 'N/A' }}</label>
         </div>
         <div class="mb-3">
           <label for="diagnosis" class="form-label">Diagnosis</label>

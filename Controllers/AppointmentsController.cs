@@ -1,15 +1,13 @@
-﻿using Hospital_Management_system.Models;
-using Hospital_Management_system.Models.DTOs;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Data.SqlClient;
-using Microsoft.EntityFrameworkCore;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
-
+using Hospital_Management_system.Models;
+using Hospital_Management_system.Models.DTOs;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 
 namespace Hospital_Management_system.Controllers
 {
@@ -23,23 +21,35 @@ namespace Hospital_Management_system.Controllers
         {
             _context = context;
         }
-        // In AppointmentsController.cs
+
         [HttpGet("patient-data")]
-        public async Task<ActionResult<object>> GetPatientDataForApprovedAppointment(int appointmentId, int userId, string userRole)
+        public async Task<ActionResult<PatientDetailsDto>> GetPatientDataForApprovedAppointment(int appointmentId, int userId, string userRole)
         {
             try
             {
                 var result = await _context.Database
-                    .SqlQueryRaw<object>(
+                    .SqlQueryRaw<PatientDetailsDto>(
                         "EXEC GetPatientDataForApprovedAppointment @AppointmentId, @UserId, @UserRole",
                         new SqlParameter("@AppointmentId", appointmentId),
                         new SqlParameter("@UserId", userId),
                         new SqlParameter("@UserRole", userRole)
                     )
+                    .Select(p => new PatientDetailsDto
+                    {
+                        PatientId = p.PatientId,
+                        FullName = p.FullName,
+                        Aadhaar_no = p.Aadhaar_no,
+                        ContactNo = p.ContactNo,
+                        Dob = p.Dob,
+                        Age = p.Age,
+                        AppointmentId = p.AppointmentId,
+                        AppointmentDate = p.AppointmentDate,
+                        Symptoms = p.Symptoms
+                    })
                     .FirstOrDefaultAsync();
 
                 if (result == null)
-                    return NotFound("No data found or access denied.");
+                    return NotFound(new { message = "No data found or access denied." });
 
                 return Ok(result);
             }
@@ -48,6 +58,7 @@ namespace Hospital_Management_system.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+
         // GET: api/Appointments
         [HttpGet]
         public async Task<ActionResult<IEnumerable<AppointmentResponseDto>>> GetAppointments()
@@ -258,7 +269,7 @@ namespace Hospital_Management_system.Controllers
                 DoctorId = bookingDto.DoctorId,
                 AppointmentDate = bookingDto.AppointmentDate,
                 Symptoms = bookingDto.Symptoms,
-                AppointmentStatus = "Pending", // Initial status
+                AppointmentStatus = "Pending",
                 InvoiceStatus = "Pending"
             };
 
@@ -334,7 +345,6 @@ namespace Hospital_Management_system.Controllers
             }
 
             appointment.AppointmentStatus = "Rejected";
-            // Store reason in Diagnosis field temporarily (or just ignore it if you don't want to store it)
             appointment.Diagnosis = $"Rejected: {actionDto.Reason}";
 
             try
@@ -541,7 +551,6 @@ namespace Hospital_Management_system.Controllers
                 return BadRequest(new { message = "Invalid date format" });
             }
 
-            // Define time slots (9 AM to 5 PM, 30-minute intervals)
             var allSlots = new List<string>();
             for (int hour = 9; hour < 17; hour++)
             {
@@ -549,7 +558,6 @@ namespace Hospital_Management_system.Controllers
                 allSlots.Add($"{hour:D2}:30");
             }
 
-            // Get booked slots for this doctor on this date
             var bookedSlots = await _context.Appointments
                 .Where(a => a.DoctorId == doctorId
                     && a.AppointmentDate.Date == selectedDate.Date
@@ -557,7 +565,6 @@ namespace Hospital_Management_system.Controllers
                 .Select(a => a.AppointmentDate.ToString("HH:mm"))
                 .ToListAsync();
 
-            // Return available slots
             var availableSlots = allSlots.Except(bookedSlots).ToList();
 
             return Ok(availableSlots);
@@ -593,7 +600,7 @@ namespace Hospital_Management_system.Controllers
             return NoContent();
         }
 
-        // POST: api/Appointments (Keep for backward compatibility)
+        // POST: api/Appointments
         [HttpPost]
         public async Task<ActionResult<Appointment>> PostAppointment(Appointment appointment)
         {
@@ -618,6 +625,7 @@ namespace Hospital_Management_system.Controllers
 
             return NoContent();
         }
+
         [HttpPost("save-prescription")]
         public async Task<IActionResult> SavePrescription([FromBody] PrescriptionDto dto)
         {
@@ -631,13 +639,11 @@ namespace Hospital_Management_system.Controllers
             if (appointment.AppointmentStatus != "Confirmed")
                 return BadRequest("Only confirmed appointments can be completed with a prescription.");
 
-            // Check if prescription already exists (for update)
             var existingPrescription = await _context.Prescriptions
                 .FirstOrDefaultAsync(p => p.AppointmentID == dto.AppointmentId);
 
             if (existingPrescription != null)
             {
-                // Update existing
                 existingPrescription.Diagnosis = dto.Diagnosis ?? existingPrescription.Diagnosis;
                 existingPrescription.MedicinesJson = JsonSerializer.Serialize(dto.Medicines ?? JsonSerializer.Deserialize<List<MedicineDto>>(existingPrescription.MedicinesJson));
                 existingPrescription.ChiefComplaints = dto.ChiefComplaints ?? existingPrescription.ChiefComplaints;
@@ -648,7 +654,6 @@ namespace Hospital_Management_system.Controllers
             }
             else
             {
-                // Create new
                 var prescription = new Prescription
                 {
                     AppointmentID = dto.AppointmentId,
@@ -667,6 +672,7 @@ namespace Hospital_Management_system.Controllers
 
             return Ok(new { message = "Prescription saved and appointment completed successfully" });
         }
+
         private bool AppointmentExists(int id)
         {
             return _context.Appointments.Any(e => e.AppointmentId == id);

@@ -37,7 +37,24 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/PatientDetailsDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PatientDetailsDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PatientDetailsDto"
+                }
+              }
+            }
           }
         }
       }
@@ -944,17 +961,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/Doctor"
+                  "$ref": "#/components/schemas/DoctorDto"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Doctor"
+                  "$ref": "#/components/schemas/DoctorDto"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Doctor"
+                  "$ref": "#/components/schemas/DoctorDto"
                 }
               }
             }
@@ -1271,17 +1288,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/Patient"
+                  "$ref": "#/components/schemas/PatientDto"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Patient"
+                  "$ref": "#/components/schemas/PatientDto"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Patient"
+                  "$ref": "#/components/schemas/PatientDto"
                 }
               }
             }
@@ -2259,6 +2276,36 @@
         },
         "additionalProperties": false
       },
+      "DoctorDto": {
+        "type": "object",
+        "properties": {
+          "docId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "fullName": {
+            "type": "string",
+            "nullable": true
+          },
+          "specialisation": {
+            "type": "string",
+            "nullable": true
+          },
+          "hpid": {
+            "type": "string",
+            "nullable": true
+          },
+          "availability": {
+            "type": "string",
+            "nullable": true
+          },
+          "contactNo": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "DoctorUpdateDto": {
         "type": "object",
         "properties": {
@@ -2387,7 +2434,19 @@
       "PatientDetailsDto": {
         "type": "object",
         "properties": {
+          "patientId": {
+            "type": "integer",
+            "format": "int32"
+          },
           "fullName": {
+            "type": "string",
+            "nullable": true
+          },
+          "aadhaar_no": {
+            "type": "string",
+            "nullable": true
+          },
+          "contactNo": {
             "type": "string",
             "nullable": true
           },
@@ -2400,15 +2459,23 @@
             "type": "string",
             "nullable": true
           },
-          "contactNo": {
-            "type": "string",
-            "nullable": true
-          },
           "address": {
             "type": "string",
             "nullable": true
           },
-          "aadhaar_no": {
+          "age": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "appointmentId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "appointmentDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "symptoms": {
             "type": "string",
             "nullable": true
           }
@@ -2437,6 +2504,10 @@
           "aadhaar_no": {
             "type": "string",
             "nullable": true
+          },
+          "age": {
+            "type": "integer",
+            "format": "int32"
           }
         },
         "additionalProperties": false
