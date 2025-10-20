@@ -282,3 +282,17 @@ BEGIN
         RAISERROR (@ErrorMessage, @ErrorSeverity, @ErrorState);
     END CATCH
 END
+
+SELECT PatientID, FullName, DOB, Aadhaar_no, ContactNo
+FROM Patients
+WHERE PatientID IN (SELECT PatientID FROM Appointments WHERE AppointmentId = 12);
+
+SELECT AppointmentId, PatientID, DoctorId, IsApproved, AppointmentDate
+FROM Appointments
+WHERE AppointmentId = 12;
+
+UPDATE Appointments
+SET IsApproved = 1
+WHERE AppointmentId = 12;
+
+EXEC GetPatientDataForApprovedAppointment @AppointmentId = 12, @UserId = 1, @UserRole = 'Doctor';

@@ -60,40 +60,40 @@ export class PrescriptionComponent implements OnInit {
   }
 
   fetchPatientData() {
-    if (!this.appointmentId || !this.doctorId) {
-      console.error('Cannot fetch patient data: appointmentId or doctorId is undefined', {
-        appointmentId: this.appointmentId,
-        doctorId: this.doctorId
-      });
-      return;
-    }
-    this.http.get(`https://localhost:7090/api/Appointments/patient-data`, {
-      params: {
-        appointmentId: this.appointmentId.toString(),
-        userId: this.doctorId.toString(),
-        userRole: 'Doctor'
-      }
-    }).subscribe({
-      next: (data: any) => {
-        console.log('Patient data response:', data);
-        this.patient = {
-          name: data.FullName || data.fullName || 'N/A',
-          age: data.Age || data.age || 0,
-          date: data.AppointmentDate ? new Date(data.AppointmentDate) : null
-        };
-        console.log('Updated patient data:', this.patient);
-      },
-      error: (err) => {
-        console.error('Error fetching patient data:', err);
-        this.patient = {
-          name: this.patient.name || 'N/A',
-          age: 0,
-          date: this.patient.date ? new Date(this.patient.date) : null
-        };
-        console.log('Fallback patient data:', this.patient);
-      }
+  if (!this.appointmentId || !this.doctorId) {
+    console.error('Cannot fetch patient data: appointmentId or doctorId is undefined', {
+      appointmentId: this.appointmentId,
+      doctorId: this.doctorId
     });
+    return;
   }
+  this.http.get(`https://localhost:7090/api/Appointments/patient-data`, {
+  params: {
+    appointmentId: this.appointmentId.toString(),
+    doctorId: this.doctorId.toString(),  // Changed from userId
+    userRole: 'Doctor'
+  }
+}).subscribe({
+    next: (data: any) => {
+      console.log('Patient data response:', data);
+      this.patient = {
+        name: data.fullName || 'N/A',
+        age: data.age || 0,
+        date: data.appointmentDate ? new Date(data.appointmentDate) : null
+      };
+      console.log('Updated patient data:', this.patient);
+    },
+    error: (err) => {
+      console.error('Error fetching patient data:', err);
+      this.patient = {
+        name: this.patient.name || 'N/A',
+        age: 0,
+        date: this.patient.date ? new Date(this.patient.date) : null
+      };
+      console.log('Fallback patient data:', this.patient);
+    }
+  });
+}
 
   fetchDoctorData() {
     if (!this.doctorId) {

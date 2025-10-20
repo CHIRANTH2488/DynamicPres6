@@ -409,7 +409,7 @@
         "IsRequired": false
       },
       {
-        "Name": "userId",
+        "Name": "doctorId",
         "Type": "System.Int32",
         "IsRequired": false
       },

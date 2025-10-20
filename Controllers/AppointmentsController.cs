@@ -23,35 +23,26 @@ namespace Hospital_Management_system.Controllers
         }
 
         [HttpGet("patient-data")]
-        public async Task<ActionResult<PatientDetailsDto>> GetPatientDataForApprovedAppointment(int appointmentId, int userId, string userRole)
+        public async Task<ActionResult<PatientDetailsDto>> GetPatientDataForApprovedAppointment(
+    int appointmentId,
+    int doctorId,  // Changed from userId
+    string userRole)
         {
             try
             {
                 var result = await _context.Database
                     .SqlQueryRaw<PatientDetailsDto>(
-                        "EXEC GetPatientDataForApprovedAppointment @AppointmentId, @UserId, @UserRole",
+                        "EXEC GetPatientDataForApprovedAppointment @AppointmentId, @DoctorId, @UserRole",
                         new SqlParameter("@AppointmentId", appointmentId),
-                        new SqlParameter("@UserId", userId),
+                        new SqlParameter("@DoctorId", doctorId),  // Changed parameter name
                         new SqlParameter("@UserRole", userRole)
                     )
-                    .Select(p => new PatientDetailsDto
-                    {
-                        PatientId = p.PatientId,
-                        FullName = p.FullName,
-                        Aadhaar_no = p.Aadhaar_no,
-                        ContactNo = p.ContactNo,
-                        Dob = p.Dob,
-                        Age = p.Age,
-                        AppointmentId = p.AppointmentId,
-                        AppointmentDate = p.AppointmentDate,
-                        Symptoms = p.Symptoms
-                    })
-                    .FirstOrDefaultAsync();
+                    .ToListAsync();
 
-                if (result == null)
+                if (result == null || !result.Any())
                     return NotFound(new { message = "No data found or access denied." });
 
-                return Ok(result);
+                return Ok(result.First());
             }
             catch (Exception ex)
             {

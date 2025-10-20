@@ -216,48 +216,48 @@ export class DoctorDashboardComponent implements OnInit {
   }
 
   openPrescriptionForm(appointment: AppointmentResponseDto): void {
-    if (!appointment || !appointment.appointmentId || !this.doctorId) {
-      console.error('Invalid appointment or doctor data:', { appointment, doctorId: this.doctorId });
-      this.errorMessage = 'Cannot open prescription form: Invalid appointment or doctor data.';
-      return;
-    }
-
-    this.selectedPrescriptionAppointmentId = appointment.appointmentId;
-    this.showPrescriptionForm = true;
-    this.patientData = {
-      name: appointment.patientName || 'N/A',
-      age: 0,
-      date: appointment.appointmentDate ? new Date(appointment.appointmentDate) : null
-    };
-
-    this.http.get(`https://localhost:7090/api/Appointments/patient-data`, {
-      params: {
-        appointmentId: appointment.appointmentId.toString(),
-        userId: this.doctorId.toString(),
-        userRole: 'Doctor'
-      }
-    }).subscribe({
-      next: (data: any) => {
-        console.log('Patient data response:', data);
-        this.patientData = {
-          name: data.FullName || data.fullName || appointment.patientName || 'N/A',
-          age: data.Age || data.age || 0,
-          date: data.AppointmentDate ? new Date(data.AppointmentDate) : (appointment.appointmentDate ? new Date(appointment.appointmentDate) : null)
-        };
-        console.log('Updated patientData:', this.patientData);
-      },
-      error: (err) => {
-        console.error('Error fetching patient details:', err);
-        this.errorMessage = 'Failed to load patient data. Using available data.';
-        this.patientData = {
-          name: appointment.patientName || 'N/A',
-          age: 0,
-          date: appointment.appointmentDate ? new Date(appointment.appointmentDate) : null
-        };
-        console.log('Fallback patientData:', this.patientData);
-      }
-    });
+  if (!appointment || !appointment.appointmentId || !this.doctorId) {
+    console.error('Invalid appointment or doctor data:', { appointment, doctorId: this.doctorId });
+    this.errorMessage = 'Cannot open prescription form: Invalid appointment or doctor data.';
+    return;
   }
+
+  this.selectedPrescriptionAppointmentId = appointment.appointmentId;
+  this.showPrescriptionForm = true;
+  this.patientData = {
+    name: appointment.patientName || 'N/A',
+    age: 0,
+    date: appointment.appointmentDate ? new Date(appointment.appointmentDate) : null
+  };
+
+  this.http.get(`https://localhost:7090/api/Appointments/patient-data`, {
+  params: {
+    appointmentId: appointment.appointmentId.toString(),
+    doctorId: this.doctorId.toString(),  // Changed from userId
+    userRole: 'Doctor'
+  }
+}).subscribe({
+    next: (data: any) => {
+      console.log('Patient data response:', data);
+      this.patientData = {
+        name: data.fullName || appointment.patientName || 'N/A',
+        age: data.age || 0,  // ✅ Fixed: lowercase 'age'
+        date: data.appointmentDate ? new Date(data.appointmentDate) : (appointment.appointmentDate ? new Date(appointment.appointmentDate) : null)
+      };
+      console.log('Updated patientData:', this.patientData);
+    },
+    error: (err) => {
+      console.error('Error fetching patient details:', err);
+      this.errorMessage = 'Failed to load patient data. Using available data.';
+      this.patientData = {
+        name: appointment.patientName || 'N/A',
+        age: 0,
+        date: appointment.appointmentDate ? new Date(appointment.appointmentDate) : null
+      };
+      console.log('Fallback patientData:', this.patientData);
+    }
+  });
+}
 
   savePrescription(data: any) {
     const payload = {
