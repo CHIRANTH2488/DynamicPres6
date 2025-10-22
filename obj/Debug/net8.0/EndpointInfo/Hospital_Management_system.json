@@ -2084,6 +2084,9 @@
             "format": "double",
             "nullable": true
           },
+          "isApproved": {
+            "type": "boolean"
+          },
           "doctor": {
             "$ref": "#/components/schemas/Doctor"
           },

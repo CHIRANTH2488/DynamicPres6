@@ -23,7 +23,7 @@ public partial class DebuggingDoctorsContext : DbContext
 
     public virtual DbSet<User> Users { get; set; }
 
-    public DbSet<Prescription> Prescriptions { get; set; }  // New DbSet
+    public DbSet<Prescription> Prescriptions { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         => optionsBuilder.UseSqlServer("Name=ConnectionStrings:mycon");
@@ -48,6 +48,11 @@ public partial class DebuggingDoctorsContext : DbContext
                 .HasColumnName("Invoice_Status");
             entity.Property(e => e.PatientId).HasColumnName("PatientID");
 
+            // ✅ Configure IsApproved
+            entity.Property(e => e.IsApproved)
+                .HasDefaultValue(false)
+                .IsRequired();
+
             entity.HasOne(d => d.Doctor).WithMany(p => p.Appointments)
                 .HasForeignKey(d => d.DoctorId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
@@ -66,7 +71,7 @@ public partial class DebuggingDoctorsContext : DbContext
             entity.Property(e => e.DocId).HasColumnName("DocID");
             entity.Property(e => e.Availability).HasMaxLength(255);
             entity.Property(e => e.ContactNo).HasMaxLength(20);
-            entity.Property(e => e.HPID).HasMaxLength(100);
+            entity.Property(e => e.HPID).HasMaxLength(14);  // ✅ Updated length
             entity.Property(e => e.FullName).HasMaxLength(100);
             entity.Property(e => e.Specialisation).HasMaxLength(100);
             entity.Property(e => e.UserId).HasColumnName("UserID");
@@ -87,6 +92,7 @@ public partial class DebuggingDoctorsContext : DbContext
             entity.Property(e => e.FullName).HasMaxLength(100);
             entity.Property(e => e.Gender).HasMaxLength(20);
             entity.Property(e => e.UserId).HasColumnName("UserID");
+            entity.Property(e => e.Aadhaar_no).HasMaxLength(12);  // ✅ ADDED
 
             entity.HasOne(d => d.User).WithMany(p => p.Patients)
                 .HasForeignKey(d => d.UserId)
@@ -108,17 +114,27 @@ public partial class DebuggingDoctorsContext : DbContext
             entity.Property(e => e.Role).HasMaxLength(20);
         });
 
-    
+        // Configure Prescription
+        modelBuilder.Entity<Prescription>(entity =>
+        {
+            entity.HasKey(e => e.PrescriptionID);
 
-        // Configure Prescription relationship
-        modelBuilder.Entity<Prescription>()
-            .HasOne(p => p.Appointment)
-            .WithOne(a => a.Prescription)  // 1:1 (change to WithMany() for 1:M)
-            .HasForeignKey<Prescription>(p => p.AppointmentID)
-            .OnDelete(DeleteBehavior.Cascade);
+            entity.Property(e => e.PrescriptionID).HasColumnName("PrescriptionID");
+            entity.Property(e => e.AppointmentID).HasColumnName("AppointmentID");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+            entity.Property(e => e.UpdatedAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+
+            entity.HasOne(p => p.Appointment)
+                .WithOne(a => a.Prescription)
+                .HasForeignKey<Prescription>(p => p.AppointmentID)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
 
         base.OnModelCreating(modelBuilder);
-    
     }
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);

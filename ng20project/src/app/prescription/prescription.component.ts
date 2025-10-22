@@ -118,43 +118,48 @@ export class PrescriptionComponent implements OnInit {
   }
 
   loadPrescription() {
-    if (!this.appointmentId) {
-      console.error('Cannot load prescription: appointmentId is undefined');
-      return;
-    }
-    this.http.get(`https://localhost:7090/api/Appointments/${this.appointmentId}/prescription`).subscribe({
-      next: (prescription: any) => {
-        console.log('Prescription data response:', prescription);
-        this.chiefComplaints = prescription.ChiefComplaints || '';
-        this.pastHistory = prescription.PastHistory || '';
-        this.examination = prescription.Examination || '';
-        this.advice = prescription.Advice || '';
-        this.medicines = prescription.Medicines && prescription.Medicines.length
-          ? prescription.Medicines.map((m: any, i: number) => ({
-              slNo: m.SlNo || i + 1,
-              name: m.Name || '',
-              morningBefore: m.MorningBefore || 0,
-              morningAfter: m.MorningAfter || 0,
-              afternoonBefore: m.AfternoonBefore || 0,
-              afternoonAfter: m.AfternoonAfter || 0,
-              nightBefore: m.NightBefore || 0,
-              nightAfter: m.NightAfter || 0,
-              days: m.Days || 0
-            }))
-          : [this.createEmptyMedicine()];
-        this.isEditMode = false;
-      },
-      error: (err) => {
-        console.warn('No prescription found for this appointment, initializing empty form:', err);
-        this.chiefComplaints = '';
-        this.pastHistory = '';
-        this.examination = '';
-        this.advice = '';
-        this.medicines = [this.createEmptyMedicine()];
-        this.isEditMode = true;
-      }
-    });
+  if (!this.appointmentId) {
+    console.error('Cannot load prescription: appointmentId is undefined');
+    return;
   }
+  this.http.get(`https://localhost:7090/api/Appointments/${this.appointmentId}/prescription`).subscribe({
+    next: (prescription: any) => {
+      console.log('✅ Prescription data loaded:', prescription);
+      this.chiefComplaints = prescription.ChiefComplaints || '';
+      this.pastHistory = prescription.PastHistory || '';
+      this.examination = prescription.Examination || '';
+      this.advice = prescription.Advice || '';
+      this.medicines = prescription.Medicines && prescription.Medicines.length
+        ? prescription.Medicines.map((m: any, i: number) => ({
+            slNo: m.SlNo || i + 1,
+            name: m.Name || '',
+            morningBefore: m.MorningBefore || 0,
+            morningAfter: m.MorningAfter || 0,
+            afternoonBefore: m.AfternoonBefore || 0,
+            afternoonAfter: m.AfternoonAfter || 0,
+            nightBefore: m.NightBefore || 0,
+            nightAfter: m.NightAfter || 0,
+            days: m.Days || 0
+          }))
+        : [this.createEmptyMedicine()];
+      this.isEditMode = false;
+    },
+    error: (err) => {
+      // ✅ Use console.log instead of console.warn for expected 404
+      if (err.status === 404) {
+        console.log('ℹ️ No existing prescription found - initializing new form');
+      } else {
+        console.error('❌ Error loading prescription:', err);
+      }
+      this.chiefComplaints = '';
+      this.pastHistory = '';
+      this.examination = '';
+      this.advice = '';
+      this.medicines = [this.createEmptyMedicine()];
+      this.isEditMode = true;
+    }
+  });
+}
 
   createEmptyMedicine(): Medicine {
     return {
