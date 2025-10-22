@@ -29,13 +29,13 @@
     "Parameters": [
       {
         "Name": "appointment",
-        "Type": "Hospital_Management_system.Models.Appointment",
+        "Type": "Appointment",
         "IsRequired": true
       }
     ],
     "ReturnTypes": [
       {
-        "Type": "Hospital_Management_system.Models.Appointment",
+        "Type": "Appointment",
         "MediaTypes": [
           "text/plain",
           "application/json",
@@ -86,7 +86,7 @@
       },
       {
         "Name": "appointment",
-        "Type": "Hospital_Management_system.Models.Appointment",
+        "Type": "Appointment",
         "IsRequired": true
       }
     ],

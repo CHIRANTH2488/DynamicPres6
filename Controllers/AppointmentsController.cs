@@ -288,36 +288,45 @@ namespace Hospital_Management_system.Controllers
         [HttpPut("{id}/confirm")]
         public async Task<IActionResult> ConfirmAppointment(int id)
         {
-            var appointment = await _context.Appointments.FindAsync(id);
-            if (appointment == null)
-            {
-                return NotFound(new { message = "Appointment not found" });
-            }
-
-            if (appointment.AppointmentStatus != "Pending")
-            {
-                return BadRequest(new { message = "Only pending appointments can be confirmed" });
-            }
-
-            appointment.AppointmentStatus = "Confirmed";
-
             try
             {
+                var appointment = await _context.Appointments.FindAsync(id);
+                if (appointment == null)
+                {
+                    return NotFound(new { message = "Appointment not found" });
+                }
+
+                if (appointment.AppointmentStatus != "Pending")
+                {
+                    return BadRequest(new { message = "Only pending appointments can be confirmed" });
+                }
+
+                appointment.AppointmentStatus = "Confirmed";
+                appointment.IsApproved = true;
+
                 await _context.SaveChangesAsync();
+
+                return Ok(new { message = "Appointment confirmed successfully" });
             }
-            catch (DbUpdateConcurrencyException)
+            catch (DbUpdateConcurrencyException ex)
             {
                 if (!AppointmentExists(id))
                 {
                     return NotFound();
                 }
-                else
-                {
-                    throw;
-                }
+                return StatusCode(500, new { message = "Concurrency error", error = ex.Message });
             }
-
-            return Ok(new { message = "Appointment confirmed successfully" });
+            catch (Exception ex)
+            {
+                // Log the full error for debugging
+                Console.WriteLine($"Error confirming appointment: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"Inner exception: {ex.InnerException.Message}");
+                }
+                return StatusCode(500, new { message = "Internal server error", error = ex.Message });
+            }
         }
 
         // PUT: api/Appointments/{id}/reject
